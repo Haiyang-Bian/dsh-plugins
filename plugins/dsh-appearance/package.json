@@ -1,5 +1,5 @@
 {
-  "name": "demo-sunset-theme",
+  "name": "dsh-appearance",
   "version": "0.10.0",
   "description": "Sunset, gradient Aurora and textured Sage themes with appearance and font controls in DSH General settings.",
   "type": "module",
@@ -52,7 +52,7 @@
     "dsh-plugin",
     "deepseek-harness",
     "theme",
-    "demo"
+    "appearance"
   ],
   "license": "MIT"
 }

@@ -19,7 +19,7 @@ export function mountThemeDecoration(ctx: ClientContext): () => void {
     else body.setAttribute(ATTRIBUTE, previous)
   }
   try {
-    css.dataset.plugin = 'demo-sunset-theme-decoration'
+    css.dataset.plugin = 'dsh-appearance-decoration'
     css.textContent = decorationCSS
     document.head.appendChild(css)
     const sync = (): void => {

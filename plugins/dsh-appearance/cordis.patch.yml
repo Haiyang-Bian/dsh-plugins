@@ -1,0 +1,6 @@
+# dsh-appearance bundle layer: registers appearance themes and settings in the Web client.
+# Applied after the base/web-app layers; rows here may be overridden by the
+# user's own profile patch.
+- insert:
+    - id: dsh-appearance
+      name: dsh-appearance

@@ -43,7 +43,7 @@ class Element {
       for (const callback of [...(node.events.get(name) || [])]) callback(event)
     }
   }
-  click() { if (!this.disabled) this.dispatch('click') }
+  click() { if (!this.disabled) { if (this.tagName === 'a' && this.download) this.document.downloadNames.push(this.download); this.dispatch('click') } }
   focus() { this.document.activeElement = this }
   blur() { this.document.activeElement = null }
   get classList() {
@@ -70,6 +70,7 @@ function environment(options = {}) {
   document.head = document.appendChild(new Element('head', document))
   document.body = document.appendChild(new Element('body', document))
   document.activeElement = null
+  document.downloadNames = []
   document.createElement = (tag) => new Element(tag, document)
   document.getElementById = (id) => find(document, (element) => element.id === id)
   const store = options.store || new Map()
@@ -99,7 +100,8 @@ function environment(options = {}) {
       }
     },
   }
-  const root = { getFileHandle: async () => file }
+  opfs.filenames = []
+  const root = { getFileHandle: async name => { opfs.filenames.push(name); return file } }
   const timers = new Map()
   const blobs = new Map()
   const downloads = []
@@ -107,6 +109,7 @@ function environment(options = {}) {
   let nextTimer = 0
   let nextUrl = 0
   let lockQueue = Promise.resolve()
+  const lockNames = []
   const sandbox = {
     document, Blob, TextEncoder, URLSearchParams,
     location: { search: options.search || '' },
@@ -114,6 +117,7 @@ function environment(options = {}) {
       storage: options.opfs ? { getDirectory: options.getDirectory || (async () => root) } : {},
       locks: {
         request: (_name, work) => {
+          lockNames.push(_name)
           const task = lockQueue.then(() => work({ name: _name }))
           lockQueue = task.catch(() => undefined)
           return task
@@ -148,7 +152,7 @@ function environment(options = {}) {
     run((name) => load(path.relative(path.join(__dirname, '..', 'src'), path.resolve(path.dirname(filename), name + '.ts'))), module, module.exports)
     return module.exports
   }
-  return { sandbox, context, document, store, timers, blobs, downloads, messages, storageFaults, opfs, load,
+  return { sandbox, context, document, store, timers, blobs, downloads, messages, lockNames, storageFaults, opfs, load,
     find: (predicate) => find(document, predicate),
     byClass: (name) => find(document, (node) => node.classList.contains(name)),
     runTimers: () => { for (const [id, timer] of [...timers]) { timers.delete(id); timer.callback() } },
@@ -225,7 +229,7 @@ function host(options = {}) {
 
 function plugin(env) {
   if (!env.pluginFactory) {
-    env.sandbox.window.__ModuleLoader__ = { load: ({ factory }) => { env.pluginFactory = factory } }
+    env.sandbox.window.__ModuleLoader__ = { load: ({ factory, id }) => { env.pluginFactory = factory; env.pluginId = id } }
     env.load('client.ts')
   }
   return env.pluginFactory((name) => {

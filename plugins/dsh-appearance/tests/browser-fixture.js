@@ -85,7 +85,7 @@ try {
     inject: actions => { appearanceActions = actions; sync(theme.getTheme()); return { setTheme: id => theme.setTheme(id) } } }, installed.AppearanceRow)
   ctx.slots.register({ name: 'settings.general.item', id: 'font-size', order: 11, locale: 'settings.theme', store: fontSizeStore,
     inject: actions => { sizeActions = actions; sync(theme.getTheme()); return { setFontSize: size => theme.setFontSize(size) } } }, installed.FontSizeRow)
-  const entry = factories.get('demo-sunset-theme')(shared)
+  const entry = factories.get('dsh-appearance')(shared)
   let activated = ctx.plugin(entry)
   const unmount = ctx.uiRenderer.mount(document.getElementById('settings'))
   await tick()
@@ -144,7 +144,7 @@ try {
       activated = ctx.plugin(entry); await tick()
       check(document.querySelector('.dsx-font-select').value === 'verdana' && ids.every(id => family(id).includes('Verdana')), '再次启用恢复字体和设置贡献')
       await activated.dispose(); await tick()
-      check(!document.querySelector('style[data-plugin="demo-sunset-theme"]') && !document.querySelector('style[data-plugin="demo-sunset-theme-decoration"]') && !document.body.hasAttribute('data-dsx-surface-theme') && same(capture(), baseline), '最终卸载清除插件样式、装饰属性与字体覆盖')
+      check(!document.querySelector('style[data-plugin="dsh-appearance"]') && !document.querySelector('style[data-plugin="dsh-appearance-decoration"]') && !document.body.hasAttribute('data-dsx-surface-theme') && same(capture(), baseline), '最终卸载清除插件样式、装饰属性与字体覆盖')
       activated = ctx.plugin(entry); await tick()
       select('system'); flush(() => document.querySelector('[data-theme="system"]').click())
       theme.setFontSize(14)

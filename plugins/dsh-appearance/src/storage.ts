@@ -1,3 +1,4 @@
+/** Legacy keys are retained after renaming to dsh-appearance. */
 /** Plugin preferences. DSH persists only built-in theme ids, so custom
  *  themes and font choices are stored per browser origin. */
 

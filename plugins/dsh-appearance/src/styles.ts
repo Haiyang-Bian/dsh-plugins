@@ -28,18 +28,18 @@ export const settingsCSS = `
  */
 export const decorationCSS = `
 body[data-dsx-surface-theme] {
-  background-image: var(--demo-sunset-theme-canvas-image);
+  background-image: var(--dsh-appearance-canvas-image);
   background-attachment: fixed;
   background-repeat: no-repeat;
 }
 body[data-dsx-surface-theme] :is(.BynINW_frame, .BynINW_centerCol, .Dc7zOa_root, [data-conversation-content]) {
-  background-image: var(--demo-sunset-theme-canvas-image);
+  background-image: var(--dsh-appearance-canvas-image);
 }
 body[data-dsx-surface-theme] :is(.BynINW_sidebarCol, ._2H3hWW_root) {
-  background-image: var(--demo-sunset-theme-sidebar-image);
+  background-image: var(--dsh-appearance-sidebar-image);
 }
 body[data-dsx-surface-theme] .dsx-theme-card[aria-pressed="true"] {
-  background-image: var(--demo-sunset-theme-canvas-image);
+  background-image: var(--dsh-appearance-canvas-image);
 }
 @media (forced-colors: active) {
   body[data-dsx-surface-theme],

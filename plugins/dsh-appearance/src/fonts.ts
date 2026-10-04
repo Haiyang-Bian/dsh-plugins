@@ -62,4 +62,4 @@ export const FONT_GROUPS: Array<{ id: FontGroup; label: string }> = [
   { id: 'cjk',     label: '中文' },
 ]
 
-export const FONT_SOURCE = 'demo-sunset-theme-font'
+export const FONT_SOURCE = 'dsh-appearance-font'

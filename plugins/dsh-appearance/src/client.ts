@@ -13,11 +13,11 @@ import { Log } from './log'
 import type { ClientContext } from './types'
 
 window.__ModuleLoader__.load({
-  id: 'demo-sunset-theme',
+  id: 'dsh-appearance',
   factory: (require) => {
     const React = require('react')
     return {
-      name: 'demo-sunset-theme',
+      name: 'dsh-appearance',
       inject: ['theme', 'slots'],
       apply(ctx: ClientContext) {
         const log = new Log()
@@ -36,7 +36,7 @@ window.__ModuleLoader__.load({
           return disposal
         }
         // Own cleanup before registration or mounting can fail.
-        ctx.effect(() => dispose, 'demo-sunset-theme: dispose')
+        ctx.effect(() => dispose, 'dsh-appearance: dispose')
         void log.init()
 
         try {
@@ -56,7 +56,7 @@ window.__ModuleLoader__.load({
           const settings = registerSettings(ctx, log, preference, fonts, React)
           releases.push(settings.dispose)
         } catch (error) {
-          void dispose().catch((failure) => console.warn('[demo-sunset-theme] cleanup failed', failure))
+          void dispose().catch((failure) => console.warn('[dsh-appearance] cleanup failed', failure))
           throw error
         }
       },

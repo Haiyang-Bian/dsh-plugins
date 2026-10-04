@@ -5,7 +5,7 @@ export default defineConfig({
     lib: {
       entry: 'src/client.ts',
       formats: ['iife'],
-      name: 'demoSunsetTheme',
+      name: 'dshAppearance',
       fileName: () => 'client.js',
     },
     rollupOptions: {

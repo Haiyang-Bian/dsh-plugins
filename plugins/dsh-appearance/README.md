@@ -1,4 +1,4 @@
-# demo-sunset-theme
+# DSH 外观增强 (dsh-appearance)
 
 为 DeepSeek Harness 提供 Sunset（深紫与琥珀）、Aurora（蓝青与淡紫渐变）、Sage（鼠尾草绿与暖米色纸纹）三个主题，并将外观和字体控制集成到 **设置 → 通用**。
 
@@ -26,7 +26,7 @@ Aurora 在主区域使用柔和的蓝、青、淡紫光晕，侧栏使用更明�
 | 字体选择 | `localStorage['demo-sunset-theme:font']` |
 | 自定义字体名 | `localStorage['demo-sunset-theme:custom-font']` |
 
-沿用旧版本的全部存储键，无需手动迁移。插件偏好按浏览器 origin 保存，不跨设备同步。
+原 demo-sunset-theme 已更名为 dsh-appearance，包名和运行时标识均已更新。沿用旧版本的全部存储键、OPFS 文件 demo-sunset-theme.log 和 Web Locks 名称 demo-sunset-theme:log，无需手动迁移。插件偏好按浏览器 origin 保存，不跨设备同步。
 
 初始化优先级为：有效 `?theme=<id>` → 已保存且仍注册的自定义主题 → 宿主当前偏好。URL 只在激活时使用，之后不会覆盖用户选择。未知 URL 主题被忽略，失效的保存主题被清除；未知字体和空自定义字体回落到系统默认。
 
@@ -34,10 +34,9 @@ Aurora 在主区域使用柔和的蓝、青、淡紫光晕，侧栏使用更明�
 
 ## 开发与验证
 
-沿用 pnpm 和现有锁文件：
+该插件属于根目录 pnpm workspace，使用根目录共享锁文件。在仓库根目录安装依赖，再进入本插件目录运行以下检查：
 
 ```bash
-pnpm install --frozen-lockfile
 pnpm test
 pnpm run typecheck
 pnpm run build

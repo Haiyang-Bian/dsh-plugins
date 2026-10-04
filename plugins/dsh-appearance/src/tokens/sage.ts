@@ -2,8 +2,8 @@ import { sageDecoration } from './decoration'
 
 /** Sage — botanical green, warm cream and a fine paper texture. */
 export const sageTokens: Record<string, string> = {
-  '--demo-sunset-theme-canvas-image': sageDecoration.canvas,
-  '--demo-sunset-theme-sidebar-image': sageDecoration.sidebar,
+  '--dsh-appearance-canvas-image': sageDecoration.canvas,
+  '--dsh-appearance-sidebar-image': sageDecoration.sidebar,
   '--dsw-alias-bg-base':          '#f3f6f3',
   '--dsw-alias-bg-layer-1':       '#ffffff',
   '--dsw-alias-bg-layer-2':       '#eaf0eb',

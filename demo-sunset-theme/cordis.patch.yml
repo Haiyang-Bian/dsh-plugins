@@ -1,6 +1,0 @@
-# demo-sunset-theme bundle layer: registers the Sunset theme in the Web client.
-# Applied after the base/web-app layers; rows here may be overridden by the
-# user's own profile patch.
-- insert:
-    - id: demo-sunset-theme
-      name: demo-sunset-theme

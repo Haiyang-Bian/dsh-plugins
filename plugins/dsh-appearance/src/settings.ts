@@ -136,9 +136,9 @@ export function registerSettings(ctx: ClientContext, log: Log, themes: ThemePref
     return disposal
   }
   // Also cover setup failures before the caller can retain the returned handle.
-  ctx.effect(() => dispose, 'demo-sunset-theme: settings cleanup')
+  ctx.effect(() => dispose, 'dsh-appearance: settings cleanup')
   try {
-    css.dataset.plugin = 'demo-sunset-theme'
+    css.dataset.plugin = 'dsh-appearance'
     css.textContent = settingsCSS
     document.head.appendChild(css)
     releases.push(ctx.on('theme/change', () => appearance.publish(ctx.theme.getTheme())))
@@ -158,13 +158,13 @@ export function registerSettings(ctx: ClientContext, log: Log, themes: ThemePref
             selectTheme: id => warn('theme selection', () => themes.select(id)) }),
         }, components.AppearanceRow))
         rows.push(ctx.slots.register({
-          name: SLOT, id: 'demo-sunset-theme-font', order: 10.5,
+          name: SLOT, id: 'dsh-appearance-font', order: 10.5,
           inject: (): FontInjected => ({ hooks: { font: fonts.source },
             selectFont: id => warn('font selection', () => fonts.select(id)),
             applyCustom: name => warn('custom font selection', () => fonts.applyCustom(name)) }),
         }, components.FontRow))
         rows.push(ctx.slots.register({
-          name: SLOT, id: 'demo-sunset-theme-log', order: 12,
+          name: SLOT, id: 'dsh-appearance-log', order: 12,
           inject: (): LogInjected => ({ hooks: { sink },
             exportLog: async () => {
               try { await log.exportAsFile() }
@@ -176,7 +176,7 @@ export function registerSettings(ctx: ClientContext, log: Log, themes: ThemePref
     }))
     return { dispose }
   } catch (error) {
-    void dispose().catch(failure => console.warn('[demo-sunset-theme] settings cleanup failed', failure))
+    void dispose().catch(failure => console.warn('[dsh-appearance] settings cleanup failed', failure))
     throw error
   }
 }

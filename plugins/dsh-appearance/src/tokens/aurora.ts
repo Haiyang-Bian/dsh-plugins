@@ -2,8 +2,8 @@ import { auroraDecoration } from './decoration'
 
 /** Aurora — blue/cyan light with a soft lavender glow. */
 export const auroraTokens: Record<string, string> = {
-  '--demo-sunset-theme-canvas-image': auroraDecoration.canvas,
-  '--demo-sunset-theme-sidebar-image': auroraDecoration.sidebar,
+  '--dsh-appearance-canvas-image': auroraDecoration.canvas,
+  '--dsh-appearance-sidebar-image': auroraDecoration.sidebar,
   '--dsw-alias-bg-base':          '#f4f7fa',
   '--dsw-alias-bg-layer-1':       '#ffffff',
   '--dsw-alias-bg-layer-2':       '#eef2f6',

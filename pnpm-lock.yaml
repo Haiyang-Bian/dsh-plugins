@@ -6,7 +6,9 @@ settings:
 
 importers:
 
-  .:
+  .: {}
+
+  plugins/dsh-appearance:
     devDependencies:
       '@deepseek-ai/dsh-client-store':
         specifier: 0.2.0-rc.2

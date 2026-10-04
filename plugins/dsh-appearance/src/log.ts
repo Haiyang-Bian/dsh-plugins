@@ -1,3 +1,4 @@
+/** Legacy persistence names preserve logs and cross-version Web Locks. */
 /** Bounded, per-activation logger. Every OPFS batch is committed by close(). */
 const OPFS_FILENAME = 'demo-sunset-theme.log'
 const STORAGE_KEY = 'demo-sunset-theme:log'
@@ -162,7 +163,7 @@ export class Log {
     const a = document.createElement('a')
     try {
       a.href = url
-      a.download = `demo-sunset-theme-${new Date().toISOString().slice(0, 10)}.log`
+      a.download = `dsh-appearance-${new Date().toISOString().slice(0, 10)}.log`
       document.body.appendChild(a)
       a.click()
       const timer = window.setTimeout(() => {
@@ -203,7 +204,7 @@ export class Log {
   private setSink(sink: LogSink): void {
     this.sink = sink
     for (const listener of this.listeners) {
-      try { listener() } catch (error) { console.warn('[demo-sunset-theme] log listener failed', error) }
+      try { listener() } catch (error) { console.warn('[dsh-appearance] log listener failed', error) }
     }
   }
 
@@ -216,7 +217,7 @@ export class Log {
         this.setSink(sink)
         return
       }
-    } catch (error) { console.warn('[demo-sunset-theme] OPFS unavailable', error) }
+    } catch (error) { console.warn('[dsh-appearance] OPFS unavailable', error) }
     await this.fallback()
   }
 
@@ -229,7 +230,7 @@ export class Log {
         this.history = parse(seed ?? existing)
         this.setSink(sink)
         return
-      } catch (error) { console.warn('[demo-sunset-theme] localStorage unavailable', error) }
+      } catch (error) { console.warn('[dsh-appearance] localStorage unavailable', error) }
     }
     const sink = new ConsoleSink()
     await sink.write(seed ?? serialize(this.history))
@@ -245,7 +246,7 @@ export class Log {
     if (this.flushTimer === null) {
       this.flushTimer = window.setTimeout(() => {
         this.flushTimer = null
-        void this.flush().catch((error) => console.warn('[demo-sunset-theme] flush failed', error))
+        void this.flush().catch((error) => console.warn('[dsh-appearance] flush failed', error))
       }, FLUSH_INTERVAL_MS)
     }
   }
@@ -268,7 +269,7 @@ export class Log {
         if (batch.length || text !== raw) await this.sink!.write(text)
       })
     } catch (error) {
-      console.warn('[demo-sunset-theme] log storage failed', error)
+      console.warn('[dsh-appearance] log storage failed', error)
       if (!merged) this.history = bound([...this.history, ...batch])
       await this.fallback(serialize(this.history))
       if (this.sink?.label === 'console') for (const line of batch) console.log(line)
