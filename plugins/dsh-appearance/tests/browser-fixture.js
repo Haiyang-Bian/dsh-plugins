@@ -36,6 +36,44 @@ const ids = ['ui', 'button', 'brand', 'composer', 'heading', 'markdown']
 const family = id => getComputedStyle(document.getElementById(id)).fontFamily
 const capture = () => Object.fromEntries(ids.map(id => [id, family(id)]))
 const same = (a, b) => ids.every(id => a[id] === b[id])
+// Only the fixture changes window modes; plugin CSS owns no window listeners.
+function setShellMode(windows, collapsed) {
+  const html = document.documentElement
+  const frame = document.querySelector('.host-preview')
+  const sidebar = document.querySelector('.preview-sidebar')
+  html.toggleAttribute('data-windows-titlebar', windows)
+  if (windows) html.style.setProperty('--dsh-windows-titlebar-height', '32px')
+  else html.style.removeProperty('--dsh-windows-titlebar-height')
+  frame.toggleAttribute('data-sidebar-collapsed', collapsed)
+  sidebar.classList.toggle('_2H3hWW_collapsed', collapsed)
+  const width = collapsed ? (windows ? 0 : 64) : 164
+  frame.style.gridTemplateColumns = width + 'px minmax(0,1fr) minmax(0,0px)'
+  document.querySelector('#layout-handle').style.left = width + 'px'
+  document.querySelector('#windows-mode').checked = windows
+  document.querySelector('#collapsed-mode').checked = collapsed
+}
+for (const id of ['windows-mode', 'collapsed-mode']) document.getElementById(id).addEventListener('change', () => {
+  setShellMode(document.getElementById('windows-mode').checked, document.getElementById('collapsed-mode').checked)
+})
+function layoutSnapshot() {
+  const properties = ['marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'borderRadius', 'borderTopWidth', 'borderRightWidth', 'boxShadow']
+  return JSON.stringify(['.BynINW_sidebarCol', '.BynINW_centerCol'].map(selector => {
+    const css = getComputedStyle(document.querySelector(selector))
+    return properties.map(name => css[name])
+  }))
+}
+function contrast(selector) {
+  const css = getComputedStyle(document.querySelector(selector))
+  const luminance = color => {
+    const channels = color.match(/[\d.]+/g).slice(0, 3).map(Number)
+    const rgb = color.startsWith('color(srgb') ? channels : channels.map(value => value / 255)
+    return rgb.map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4)
+      .reduce((total, value, index) => total + value * [.2126, .7152, .0722][index], 0)
+  }
+  const [a,b] = [luminance(css.color), luminance(css.backgroundColor)]
+  return (Math.max(a,b) + .05) / (Math.min(a,b) + .05)
+}
+
 let count = 0
 function check(condition, label) {
   if (!condition) throw new Error(label)
@@ -62,13 +100,14 @@ try {
   const surface = selector => getComputedStyle(document.querySelector(selector))
   const surfaceSelectors = ['.BynINW_frame', '.BynINW_centerCol', '.BynINW_sidebarCol', '._2H3hWW_root', '.Dc7zOa_root', '[data-conversation-content]']
   const plainSurfaces = surfaceSelectors.map(selector => surface(selector).backgroundImage)
+  const plainLayout = layoutSnapshot()
   const t = key => ({ appearance: '外观', light: '浅色', dark: '深色', system: '跟随系统', 'fontSize.title': '正文字号', 'fontSize.description': '字体大小', 'fontSize.increase': '增大字号', 'fontSize.decrease': '减小字号', 'fontSize.unit': 'px' }[key] || key)
   const localeListeners = new Set()
   ctx.slots.installLocale({ getSnapshot: () => ({ revision: 0 }), subscribe: fn => { localeListeners.add(fn); return () => localeListeners.delete(fn) }, bind: () => t })
   let setOpen
   function SettingsRoot({ renderSlot }) {
     const [open, update] = R.useState(true); setOpen = update
-    return h('div', { className: 'settings-shell' }, h('h3', null, '设置 → 通用'),
+    return h('div', { className: 'settings-shell', 'data-shortcut-modal': 'settings' }, h('h3', null, '设置 → 通用'),
       h('button', { onClick: () => update(!open), id: 'toggle-settings' }, open ? '关闭设置' : '打开设置'),
       open && renderSlot('settings.general.item', {}))
   }
@@ -104,19 +143,36 @@ try {
       check(family('code') === codeBaseline, '代码字体保持不变')
       for (const id of ['aurora', 'sage']) {
         flush(() => document.querySelector('[data-theme="' + id + '"]').click())
-        check(document.body.getAttribute('data-dsx-surface-theme') === id && surfaceSelectors.every(selector => surface(selector).backgroundImage.includes('gradient')), id + ' 渐变实际覆盖宿主外壳、侧栏和聊天区域')
+        check(document.body.getAttribute('data-dsx-surface-theme') === id && ['.BynINW_frame', '.BynINW_sidebarCol', '.BynINW_centerCol'].every(selector => surface(selector).backgroundImage.includes('gradient')) && ['._2H3hWW_root', '.Dc7zOa_root', '[data-conversation-content]'].every(selector => surface(selector).backgroundImage === 'none'), id + ' 渐变外壳与柔和浮岛生效，内层透明以免重复铺底')
         check(surface('[data-composer-card]').backgroundImage === 'none' && surface('[data-composer-card]').backgroundColor !== 'rgba(0, 0, 0, 0)' && family('code') === codeBaseline, id + ' 输入卡片为实色，代码字体保持不变')
         check(surface('[data-theme="' + id + '"] .dsx-theme-swatch').backgroundImage.includes('gradient'), id + ' 设置卡片显示对应渐变预览')
+      }
+      for (const id of ['sunset', 'aurora', 'sage']) {
+        flush(() => document.querySelector('[data-theme="' + id + '"]').click())
+        const frame = document.querySelector('.BynINW_frame').getBoundingClientRect()
+        const sidebar = document.querySelector('.BynINW_sidebarCol').getBoundingClientRect()
+        const center = document.querySelector('.BynINW_centerCol').getBoundingClientRect()
+        check(contrast('#tooltip') >= 4.5, id + ' 宿主 tooltip 白字对比度至少 4.5:1')
+        check(contrast('#tooltip-key') >= 4.5, id + ' tooltip 快捷键提示清晰可读')
+        check(contrast('#toast') >= 4.5, id + ' 宿主 toast 文字对比度至少 4.5:1')
+        check(document.body.getAttribute('data-dsh-appearance-layout') === 'island' && sidebar.left > frame.left && center.left > sidebar.right && center.right < frame.right && surface('.BynINW_centerCol').borderRadius !== '0px' && surface('.BynINW_centerCol').boxShadow !== 'none' && surface('.BynINW_frame').columnGap === 'normal' && surface('.BynINW_frame').paddingLeft === '0px' && !document.querySelector('[data-rightbar-col]').style.cssText, id + ' 浮岛在原有网格内留白，不改变宿主轨道或浮动右栏')
+        check(surface('[data-shortcut-modal="settings"]').boxShadow !== 'none' && surface('.dsx-settings-row').borderRadius !== '0px' && surface('[data-composer-card]').borderRadius !== '0px' && surface('[data-composer-card]').backgroundImage === 'none', id + ' 设置、设置行与输入框保持独立实色浮岛')
+        setShellMode(true, false)
+        check(document.querySelector('.BynINW_centerCol').getBoundingClientRect().top > document.querySelector('.BynINW_frame').getBoundingClientRect().top + 32 && document.querySelector('#layout-handle').style.left === '164px', id + ' Windows 标题栏留白与原有拖拽位置保留')
+        setShellMode(true, true)
+        check(document.querySelector('.BynINW_sidebarCol').getBoundingClientRect().width === 0 && surface('.BynINW_sidebarCol').boxShadow === 'none' && document.querySelector('.BynINW_centerCol').getBoundingClientRect().left - document.querySelector('.BynINW_frame').getBoundingClientRect().left < 16, id + ' Windows 收起侧栏后无残留浮岛或横向占位')
+        setShellMode(false, false)
       }
       for (const id of ['sunset', 'dark', 'light', 'system']) {
         flush(() => document.querySelector('[data-theme="' + id + '"]').click())
         check(!document.body.hasAttribute('data-dsx-surface-theme') && surfaceSelectors.every((selector, index) => surface(selector).backgroundImage === plainSurfaces[index]), id + ' 不残留蓝绿装饰')
+        if (id !== 'sunset') check(!document.body.hasAttribute('data-dsh-appearance-layout') && layoutSnapshot() === plainLayout, id + ' 恢复宿主布局、边距和阴影')
       }
       check(same(capture(), selected), '切换全部主题后字体保持生效')
       flush(() => document.querySelector('[data-theme="sage"]').click())
       theme.adopt(); await tick()
       check(theme.getTheme().preference === 'sage' && document.querySelector('[data-theme="sage"]').getAttribute('aria-pressed') === 'true', '宿主同步后自定义主题和选中状态正确')
-      flush(() => setOpen(false)); check(!document.querySelector('.dsx-font-select') && same(capture(), selected) && surface('.Dc7zOa_root').backgroundImage.includes('gradient'), '关闭设置后字体、主题和宿主背景仍生效')
+      flush(() => setOpen(false)); check(!document.querySelector('.dsx-font-select') && same(capture(), selected) && surface('.BynINW_centerCol').backgroundImage.includes('gradient') && document.body.getAttribute('data-dsh-appearance-layout') === 'island', '关闭设置后字体、主题和宿主背景仍生效')
       flush(() => setOpen(true)); check(document.querySelector('.dsx-font-select').value === 'verdana', '重开设置恢复当前字体选择')
       select('custom')
       const input = document.querySelector('.dsx-custom-input')
@@ -144,7 +200,7 @@ try {
       activated = ctx.plugin(entry); await tick()
       check(document.querySelector('.dsx-font-select').value === 'verdana' && ids.every(id => family(id).includes('Verdana')), '再次启用恢复字体和设置贡献')
       await activated.dispose(); await tick()
-      check(!document.querySelector('style[data-plugin="dsh-appearance"]') && !document.querySelector('style[data-plugin="dsh-appearance-decoration"]') && !document.body.hasAttribute('data-dsx-surface-theme') && same(capture(), baseline), '最终卸载清除插件样式、装饰属性与字体覆盖')
+      check(!document.querySelector('style[data-plugin="dsh-appearance"]') && !document.querySelector('style[data-plugin="dsh-appearance-decoration"]') && !document.body.hasAttribute('data-dsx-surface-theme') && !document.body.hasAttribute('data-dsh-appearance-layout') && layoutSnapshot() === plainLayout && same(capture(), baseline), '最终卸载清除插件样式、装饰属性与字体覆盖')
       activated = ctx.plugin(entry); await tick()
       select('system'); flush(() => document.querySelector('[data-theme="system"]').click())
       theme.setFontSize(14)

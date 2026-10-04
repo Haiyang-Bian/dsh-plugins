@@ -3,11 +3,11 @@
 <link rel="stylesheet" href="/base.css"><link rel="stylesheet" href="/palette.css"><link rel="stylesheet" href="/typography.css"><link rel="stylesheet" href="/frontend.css"><link rel="stylesheet" href="/surfaces.css">
 <style>
 body{margin:0;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}
-main{max-width:1180px;padding:24px;margin:auto}.columns{display:grid;grid-template-columns:minmax(320px, .8fr) minmax(0,1.2fr);gap:24px;margin-top:20px}.settings-shell{background:var(--dsw-alias-bg-layer-2);padding:20px;border-radius:16px}.host-preview{height:574px;grid-template-columns:164px minmax(0,1fr);border:1px solid var(--dsw-alias-border-l3);border-radius:16px}.preview-sidebar{padding:20px 12px;gap:16px}.preview-sidebar p{margin:0}.preview-session{padding:24px;min-height:0;flex:1;box-sizing:border-box}.preview-session h2{font-size:20px}.preview-session p{line-height:1.8}.preview-composer{margin-top:auto;padding:14px}.preview-composer textarea{box-sizing:border-box;width:100%;font:inherit;resize:none;background:transparent;color:inherit;border:0;outline:none}.brand{font-family:var(--dsw-font-family-brand)}.note{font-size:12px;opacity:.7}.pass{color:#359563}#error{white-space:pre-wrap;color:#b84646}button{font-family:inherit}li{margin:6px 0}.checks{margin-top:20px}@media(max-width:900px){.columns{grid-template-columns:1fr}.host-preview{height:520px}}
-</style>
+main{max-width:1180px;padding:24px;margin:auto}.columns{display:grid;grid-template-columns:minmax(320px, .8fr) minmax(0,1.2fr);gap:24px;margin-top:20px}.settings-shell{background:var(--dsw-alias-bg-layer-2);padding:20px;border-radius:16px}.host-preview{height:680px;grid-template-columns:164px minmax(0,1fr) minmax(0,0px);border:1px solid var(--dsw-alias-border-l3);border-radius:16px}.preview-sidebar{padding:20px 12px;gap:16px}.preview-sidebar p{margin:0}.preview-session{padding:24px;min-height:0;flex:1;box-sizing:border-box}.preview-session h2{font-size:20px}.preview-session p{line-height:1.8}.preview-composer{margin-top:auto;padding:14px}.preview-composer textarea{box-sizing:border-box;width:100%;font:inherit;resize:none;background:transparent;color:inherit;border:0;outline:none}.brand{font-family:var(--dsw-font-family-brand)}.note{font-size:12px;opacity:.7}.pass{color:#359563}#error{white-space:pre-wrap;color:#b84646}button{font-family:inherit}li{margin:6px 0}.checks{margin-top:20px}@media(max-width:900px){.columns{grid-template-columns:1fr}.host-preview{height:680px}}
+.preview-popups{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.preview-popups :is(._bubble_12mhf_1,._toast_l6cvn_6){position:static;max-width:100%;transform:none;animation:none}.preview-popups ._toast_l6cvn_6{padding:8px 12px}.fixture-modes{display:flex;gap:16px;margin-top:12px}.preview-sidebar._2H3hWW_collapsed :is(p,._2H3hWW_panelRow){display:none}.host-preview[data-sidebar-collapsed] .BynINW_handle{display:none}</style>
 <main><h2>DSH 主题与设置验证</h2><p class="note">真实 React 与安装版 DSH 运行时、字号控件和外壳 CSS。设置容器与聊天内容为集成夹具。</p>
 <button id="run" disabled>运行集成检查</button> <span id="status">初始化中</span>
-<div class="columns"><div id="settings"></div>
+<div class="fixture-modes"><label><input type="checkbox" id="windows-mode"> Windows 标题栏夹具</label><label><input type="checkbox" id="collapsed-mode"> 收起侧栏夹具</label></div><div class="columns"><div id="settings"></div>
 <section class="BynINW_frame host-preview" aria-label="宿主主题预览">
   <aside class="BynINW_sidebarCol"><div class="_2H3hWW_root preview-sidebar">
     <p class="brand" id="brand">DeepSeek Harness</p>
@@ -18,11 +18,11 @@ main{max-width:1180px;padding:24px;margin:auto}.columns{display:grid;grid-templa
   <div class="BynINW_centerCol"><div class="Dc7zOa_root" id="conversation-root">
     <div class="preview-session Dc7zOa_body" data-conversation-content data-content-phase="active">
       <h2 id="ui">留一点色彩给灵感</h2>
-      <article class="_markdown_1ypvv_5"><h3 id="heading">柔和的光，清晰的文字</h3><p id="markdown">让背景带一点自然的变化，阅读和创作依然从容。<br>Hello DSH · Ideas grow here.</p><pre><code id="code">const theme = 'inspiration';</code></pre></article>
+      <div class="preview-popups" aria-label="宿主提示配色"><div class="_bubble_12mhf_1" id="tooltip" role="tooltip">新建对话 <kbd class="_tooltip_38b9q_20"><span class="_key_38b9q_1" id="tooltip-key">Ctrl K</span></kbd></div><div class="_toast_l6cvn_6" id="toast" role="status">设置已保存</div></div><article class="_markdown_1ypvv_5"><h3 id="heading">柔和的光，清晰的文字</h3><p id="markdown">让背景带一点自然的变化，阅读和创作依然从容。<br>Hello DSH · Ideas grow here.</p><pre><code id="code">const theme = 'inspiration';</code></pre></article>
       <div class="RlGAzG_card preview-composer" data-composer-card><textarea id="composer" aria-label="测试输入框" rows="3">输入框 / Type your message</textarea><span class="note">正文与输入区保持清晰底色</span></div>
     </div>
   </div></div>
-</section></div>
+<div class="BynINW_rightbarCol" data-rightbar-col></div><div class="BynINW_handle" id="layout-handle" style="left:164px"></div></section></div>
 <details class="checks"><summary>浏览器检查结果</summary><ol id="results"></ol></details><pre id="error"></pre></main>
 <script src="/react.js"></script><script src="/react-dom.js"></script>
 <script>window.factories=new Map();window.__ModuleLoader__={load:entry=>factories.set(entry.id,entry.factory)};</script>

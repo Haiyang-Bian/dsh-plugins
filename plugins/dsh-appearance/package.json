@@ -1,7 +1,7 @@
 {
   "name": "dsh-appearance",
   "version": "0.10.0",
-  "description": "Sunset, gradient Aurora and textured Sage themes with appearance and font controls in DSH General settings.",
+  "description": "Island-style Sunset, Aurora and Sage themes with readable tooltips and appearance/font controls in DSH General settings.",
   "type": "module",
   "main": "index.js",
   "files": [

@@ -1,6 +1,6 @@
 # DSH 外观增强 (dsh-appearance)
 
-为 DeepSeek Harness 提供 Sunset（深紫与琥珀）、Aurora（蓝青与淡紫渐变）、Sage（鼠尾草绿与暖米色纸纹）三个主题，并将外观和字体控制集成到 **设置 → 通用**。
+为 DeepSeek Harness 提供 Sunset（深紫与琥珀）、Aurora（蓝青与淡紫渐变）、Sage（鼠尾草绿与暖米色纸纹）三个浮岛式主题，并将外观和字体控制集成到 **设置 → 通用**。
 
 ## 使用
 
@@ -13,7 +13,11 @@
 
 插件不再创建右下角悬浮按钮。关闭设置窗口不会停用字体覆盖、自定义主题或日志记录。
 
-Aurora 在主区域使用柔和的蓝、青、淡紫光晕，侧栏使用更明显的多色渐变。Sage 将绿、薄荷与暖米色混合，主区域带细纸纹，侧栏带轻斜纹。装饰覆盖 DSH 外壳和聊天背景，设置卡片展示同款预览；输入卡片保持实色，代码区域沿用宿主样式。背景由静态 CSS 渐变生成，无动画、外部图片或网络请求；系统强制颜色模式下关闭装饰。
+Aurora 在主区域使用柔和的蓝、青、淡紫光晕，侧栏使用更明显的多色渐变。Sage 将绿、薄荷与暖米色混合，主区域带细纸纹，侧栏带轻斜纹。装饰覆盖 DSH 外壳和聊天背景，设置卡片展示同款预览；输入卡片保持实色，代码区域沿用宿主样式。背景由静态 CSS 渐变生成，无动画、外部图片或网络请求；系统强制颜色模式下关闭渐变与插件阴影。
+
+三个自定义主题使用浮岛式（island）界面：侧栏和主内容独立留白，设置窗口、设置行及输入框采用圆角、细边框和柔和阴影。主内容降低渐变强度，内层透明避免重复铺底，输入框保持实色。切回内置主题或卸载后恢复宿主布局。留白位于宿主网格列内部，保留原有轨道、拖拽坐标及 Windows 标题栏；窄窗口收紧留白。浮动右栏仍沿用宿主定位，插件不改动其零宽轨道。
+
+Aurora/Sage 的 tooltip 与 toast 使用主题对应的深色背景，配合宿主白色文字及快捷键标签。三个主题的提示文字对比度均达到 4.5:1。
 
 字体覆盖 DSH 实际使用的 `--dsw-font-family` 和 `--dsw-font-family-brand`，作用于主界面、输入框、Markdown 正文及设置界面。代码区域保留宿主等宽字体。预设和自定义字体均使用本机已安装字体及 fallback，不自动下载字体。选择“系统默认”或卸载插件会移除覆盖。
 
@@ -57,7 +61,7 @@ pnpm run test:browser
 node tests/browser-smoke.cjs "C:/path/to/DeepSeek Harness/resources/app.asar"
 ```
 
-打开输出的本地 URL，点击“运行集成检查”。夹具使用真实 React 及已安装 DSH 的 Cordis、SlotRegistry、ThemeRuntime、ThemePresenter、官方字号行和前端/外壳 CSS；设置容器、会话内容及持久化 scope 为测试夹具。它会检查计算字体、设置关闭/重开、未提交输入、主题同步、宿主区域的实际背景图层和卸载恢复，**不等同于完整 DSH 应用端到端验证**。
+打开输出的本地 URL，点击“运行集成检查”。夹具使用真实 React 及已安装 DSH 的 Cordis、SlotRegistry、ThemeRuntime、ThemePresenter、官方字号行和前端/外壳 CSS；设置容器、会话内容及持久化 scope 为测试夹具。它会检查计算字体、设置关闭/重开、未提交输入、主题同步、宿主区域的实际背景图层、提示配色、浮岛边界和卸载恢复，**不等同于完整 DSH 应用端到端验证**。
 
 兼容基线为 DSH `0.2.0-rc.2`。实际验证结果见 `VALIDATION.md`。
 
@@ -66,17 +70,17 @@ node tests/browser-smoke.cjs "C:/path/to/DeepSeek Harness/resources/app.asar"
 - `src/client.ts`：模块工厂、主题注册和插件生命周期。
 - `src/preferences.ts`：主题恢复与宿主同步边界。
 - `src/font-preference.ts`：插件级字体状态和覆盖，独立于设置组件挂载。
-- `src/theme-decoration.ts`：跟随激活主题的宿主背景装饰与清理。
+- `src/theme-decoration.ts`：跟随激活主题的背景、浮岛标识及清理。
 - `src/tokens/decoration.ts`：Aurora/Sage 的渐变和纹理图层。
 - `src/settings.ts`：三个 React 设置贡献，以及插槽生成的 observable selector hook。
-- `src/styles.ts`：使用宿主 token 的设置样式与宿主背景样式。
+- `src/styles.ts`：使用宿主 token 的设置样式、背景与浮岛表面样式。
 - `src/log.ts`：每次激活独立的有界持久日志。
 
 通过 `ctx.slots.inject('settings.general.item', ...)` 等待官方声明。外观贡献复用 `appearance` ID，以 `priority: -100`、`order: 10` 替换官方展示；字体贡献顺序为 `10.5`，日志为 `12`，官方字号行保持不变。贡献跟随声明生命周期移除与恢复，插件状态保持到插件卸载。
 
 组件通过 `inject` 接收动作和裸 observable source，由宿主生成 `useAppearance`、`useFont`、`useSink` 钩子；组件不接收 `ctx`。所有主题动作经过偏好控制器，确保切回内置主题时不会被自定义恢复逻辑反向覆盖。
 
-渐变使用插件专属 image token，宿主语义 color token 保持合法颜色。装饰控制器订阅 `theme/change` 并读取最新激活主题，只在 Aurora/Sage 上设置插件专属 body 属性；切换其他主题或卸载时撤销。聊天区域优先使用宿主 data 属性，外壳与侧栏选择器按已安装的 `0.2.0-rc.2` CSS 类核实；升级宿主后应复验这些选择器。
+渐变使用插件专属 image token，宿主语义 color token 保持合法颜色。装饰控制器订阅 `theme/change` 并读取最新激活主题，为 Aurora/Sage 设置渐变标识，为三个自定义主题设置浮岛标识；切换内置主题或卸载时撤销。聊天区域优先使用宿主 data 属性，外壳与侧栏选择器按已安装的 `0.2.0-rc.2` CSS 类核实；升级宿主后应复验这些选择器。
 
 添加主题时同时更新主题注册和设置中的主题卡片列表；添加字体时更新 `src/fonts.ts` 的预设及分组即可。
 

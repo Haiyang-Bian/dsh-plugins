@@ -24,7 +24,7 @@ export const settingsCSS = `
 `
 
 /** DSH 0.2.0-rc.2 shell classes; conversation uses public data attributes where available.
- * Only background-image changes: layout, hit targets, text and code stay host-owned.
+ * Theme-scoped islands stay inside host grid tracks so drag coordinates remain host-owned.
  */
 export const decorationCSS = `
 body[data-dsx-surface-theme] {
@@ -46,5 +46,90 @@ body[data-dsx-surface-theme] .dsx-theme-card[aria-pressed="true"] {
   body[data-dsx-surface-theme] :is(.BynINW_frame, .BynINW_centerCol, .Dc7zOa_root, [data-conversation-content], .BynINW_sidebarCol, ._2H3hWW_root, .dsx-theme-card) {
     background-image: none;
   }
+}
+/* Floating surfaces are scoped to the plugin's three custom themes. No frame
+ * padding/grid gap: the host's inline tracks and absolute resize handles agree.
+ * Avoid transforms/backdrop-filter on columns: they contain fixed-position UI. */
+body[data-dsh-appearance-layout="island"] {
+  --dsh-appearance-island-radius: 24px;
+  --dsh-appearance-island-shadow: 0 6px 24px color-mix(in srgb, var(--dsw-alias-label-primary) 7%, transparent);
+  --dsh-appearance-card-shadow: 0 2px 8px color-mix(in srgb, var(--dsw-alias-label-primary) 5%, transparent);
+}
+body[data-dsh-appearance-layout="island"] .BynINW_frame > :is(.BynINW_sidebarCol, .BynINW_centerCol) {
+  box-sizing: border-box;
+  min-height: 0;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsh-appearance-island-radius);
+  box-shadow: var(--dsh-appearance-island-shadow);
+}
+body[data-dsh-appearance-layout="island"] .BynINW_frame > .BynINW_sidebarCol { margin: 10px 5px 10px 10px; }
+body[data-dsh-appearance-layout="island"] .BynINW_frame > .BynINW_centerCol {
+  margin: 10px 10px 10px 5px;
+  background-color: var(--dsw-alias-bg-layer-1);
+}
+body[data-dsh-appearance-layout="island"][data-dsx-surface-theme] .BynINW_frame > .BynINW_centerCol {
+  background-image: linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 82%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 82%, transparent)), var(--dsh-appearance-canvas-image);
+}
+body[data-dsh-appearance-layout="island"] :is(.BynINW_sidebarCol > ._2H3hWW_root, .BynINW_centerCol .Dc7zOa_root, .BynINW_centerCol [data-conversation-content]) {
+  background-color: transparent;
+  background-image: none;
+}
+/* Windows collapses the sidebar track to zero and moves its controls into the
+ * titlebar. Margins/borders would otherwise leave a phantom sidebar surface. */
+html[data-windows-titlebar] body[data-dsh-appearance-layout="island"] .BynINW_frame[data-sidebar-collapsed] > .BynINW_sidebarCol {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+body[data-dsh-appearance-layout="island"] ._2H3hWW_root:not(._2H3hWW_collapsed) ._2H3hWW_newSession {
+  border-radius: 14px;
+  box-shadow: var(--dsh-appearance-card-shadow);
+}
+body[data-dsh-appearance-layout="island"] [data-composer-card] {
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsh-appearance-island-radius);
+  box-shadow: var(--dsh-appearance-island-shadow);
+}
+body[data-dsh-appearance-layout="island"] [data-shortcut-modal="settings"] {
+  box-sizing: border-box;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsh-appearance-island-radius);
+  background: var(--dsw-alias-bg-layer-1);
+  box-shadow: var(--dsh-appearance-island-shadow);
+}
+body[data-dsh-appearance-layout="island"] [data-shortcut-modal="settings"] .wCInkW_nav {
+  margin: 10px;
+  padding: 12px 8px;
+  border-radius: 18px;
+  background: var(--dsw-alias-bg-layer-2);
+}
+body[data-dsh-appearance-layout="island"] :is(.dsx-settings-row, [data-slot="settings.general.item"] > *) {
+  box-sizing: border-box;
+  margin-bottom: 12px;
+  padding: 16px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 18px;
+  background: var(--dsw-alias-bg-layer-1);
+  box-shadow: var(--dsh-appearance-card-shadow);
+}
+body[data-dsh-appearance-layout="island"] .dsx-theme-card {
+  border-radius: 14px;
+  box-shadow: var(--dsh-appearance-card-shadow);
+}
+body[data-dsh-appearance-layout="island"] .dsx-theme-card[aria-pressed="true"] {
+  background-color: color-mix(in srgb, var(--dsw-alias-brand-primary-new-colorprimary-new-color) 8%, var(--dsw-alias-bg-layer-1));
+}
+body[data-dsh-appearance-layout="island"] :is(.dsx-font-select, .dsx-custom-input, .dsx-settings-button) { border-radius: 12px; }
+@media (max-width: 640px) {
+  body[data-dsh-appearance-layout="island"] { --dsh-appearance-island-radius: 18px; }
+  body[data-dsh-appearance-layout="island"] .BynINW_frame > .BynINW_sidebarCol { margin: 6px 3px 6px 6px; }
+  body[data-dsh-appearance-layout="island"] .BynINW_frame > .BynINW_centerCol { margin: 6px 6px 6px 3px; }
+  body[data-dsh-appearance-layout="island"] :is(.dsx-settings-row, [data-slot="settings.general.item"] > *) { padding: 12px; }
+}
+@media (forced-colors: active) {
+  body[data-dsh-appearance-layout="island"] { --dsh-appearance-island-shadow: none; --dsh-appearance-card-shadow: none; }
+  body[data-dsh-appearance-layout="island"][data-dsx-surface-theme] .BynINW_frame > :is(.BynINW_sidebarCol, .BynINW_centerCol) { background-image: none; }
 }
 `
