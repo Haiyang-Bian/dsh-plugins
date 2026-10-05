@@ -46,7 +46,9 @@ function setShellMode(windows, collapsed) {
   else html.style.removeProperty('--dsh-windows-titlebar-height')
   frame.toggleAttribute('data-sidebar-collapsed', collapsed)
   sidebar.classList.toggle('_2H3hWW_collapsed', collapsed)
-  const width = collapsed ? (windows ? 0 : 64) : 164
+  const width = collapsed ? (windows ? 0 : 64) : 240
+  frame.style.setProperty('--dsh-windows-sidebar-width', width + 'px')
+  sidebar.style.width = collapsed ? '' : width + 'px'
   frame.style.gridTemplateColumns = width + 'px minmax(0,1fr) minmax(0,0px)'
   document.querySelector('#layout-handle').style.left = width + 'px'
   document.querySelector('#windows-mode').checked = windows
@@ -54,10 +56,32 @@ function setShellMode(windows, collapsed) {
 }
 for (const id of ['windows-mode', 'collapsed-mode']) document.getElementById(id).addEventListener('change', () => {
   setShellMode(document.getElementById('windows-mode').checked, document.getElementById('collapsed-mode').checked)
+  syncRightMode()
 })
+function setRightMode(open = false, overlay = false, fullscreen = false, empty = false, split = false) {
+  const frame = document.querySelector('.host-preview')
+  const panel = document.querySelector('[data-sidebar-right-panel]')
+  const left = parseFloat(document.querySelector('#layout-handle').style.left)
+  const width = fullscreen ? frame.clientWidth - left : split ? 400 : 240
+  panel.style.width = width + 'px'; panel.style.setProperty('--dsh-sidebar-width', width + 'px')
+  panel.dataset.sidebarRightPanel = fullscreen ? 'fullscreen' : 'push'
+  panel.toggleAttribute('data-sidebar-right-open', open); panel.setAttribute('aria-hidden', !open)
+  frame.style.gridTemplateColumns = left + 'px minmax(0,1fr) minmax(0,' + (open && !overlay && !fullscreen ? width : 0) + 'px)'
+  document.querySelector('[data-dockkit-host="dock"][data-dockkit-column="0"]').style.display = empty ? 'none' : ''
+  document.querySelector('[data-dockkit-empty]').style.display = empty ? '' : 'none'
+  document.querySelector('[data-dockkit-host="dock"][data-dockkit-column="1"]').style.display = split && !empty ? '' : 'none'
+  document.querySelector('[data-dockkit-divider]').style.display = split && !empty ? '' : 'none'
+  document.querySelector('#right-layout').style.gridTemplateColumns = split && !empty ? 'minmax(0,1fr) 0px minmax(0,1fr)' : 'minmax(0,1fr)'
+  for (const [id, value] of Object.entries({ 'right-mode': open, 'overlay-mode': overlay, 'fullscreen-mode': fullscreen, 'empty-mode': empty, 'split-mode': split })) document.getElementById(id).checked = value
+}
+function syncRightMode() {
+  setRightMode(...['right-mode', 'overlay-mode', 'fullscreen-mode', 'empty-mode', 'split-mode'].map(id => document.getElementById(id).checked))
+}
+for (const id of ['right-mode', 'overlay-mode', 'fullscreen-mode', 'empty-mode', 'split-mode']) document.getElementById(id).addEventListener('change', syncRightMode)
+document.getElementById('preview-mode').addEventListener('change', event => document.querySelector('main').classList.toggle('preview-only', event.target.checked))
 function layoutSnapshot() {
-  const properties = ['marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'borderRadius', 'borderTopWidth', 'borderRightWidth', 'boxShadow']
-  return JSON.stringify(['.BynINW_sidebarCol', '.BynINW_centerCol'].map(selector => {
+  const properties = ['marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'borderRadius', 'borderTopWidth', 'borderRightWidth', 'boxShadow', 'maxWidth', 'overflow']
+  return JSON.stringify(['.BynINW_sidebarCol', '.BynINW_centerCol', '.preview-sidebar', '[data-sidebar-right-panel]', '#right-pane', '[data-dockkit-empty]'].map(selector => {
     const css = getComputedStyle(document.querySelector(selector))
     return properties.map(name => css[name])
   }))
@@ -131,6 +155,8 @@ try {
   runButton.disabled = false; status.textContent = '准备就绪'
   runButton.addEventListener('click', async () => {
     runButton.disabled = true; status.textContent = '运行中'
+    document.documentElement.classList.add('fixture-checking')
+    setShellMode(false, false); setRightMode()
     try {
       check(document.querySelectorAll('.dsx-theme-card').length === 6 && !document.querySelector('.dsx-root'), '六个主题合并到设置，悬浮窗已移除')
       check(getComputedStyle(document.querySelector('[aria-pressed="true"]')).outlineStyle === 'solid' && getComputedStyle(document.body).getPropertyValue('--dsw-alias-bg-layer-2').trim(), '宿主颜色变量和主题选中样式有效')
@@ -155,13 +181,39 @@ try {
         check(contrast('#tooltip') >= 4.5, id + ' 宿主 tooltip 白字对比度至少 4.5:1')
         check(contrast('#tooltip-key') >= 4.5, id + ' tooltip 快捷键提示清晰可读')
         check(contrast('#toast') >= 4.5, id + ' 宿主 toast 文字对比度至少 4.5:1')
-        check(document.body.getAttribute('data-dsh-appearance-layout') === 'island' && sidebar.left > frame.left && center.left > sidebar.right && center.right < frame.right && surface('.BynINW_centerCol').borderRadius !== '0px' && surface('.BynINW_centerCol').boxShadow !== 'none' && surface('.BynINW_frame').columnGap === 'normal' && surface('.BynINW_frame').paddingLeft === '0px' && !document.querySelector('[data-rightbar-col]').style.cssText, id + ' 浮岛在原有网格内留白，不改变宿主轨道或浮动右栏')
+        check(document.body.getAttribute('data-dsh-appearance-layout') === 'island' && sidebar.left > frame.left && center.left > sidebar.right && center.right < frame.right && surface('.BynINW_centerCol').borderRadius !== '0px' && surface('.BynINW_centerCol').boxShadow !== 'none' && surface('.BynINW_frame').columnGap === 'normal' && surface('.BynINW_frame').paddingLeft === '0px' && !document.querySelector('[data-rightbar-col]').style.cssText, id + ' 浮岛在原有网格内留白，不改变宿主轨道和右栏锚点')
         check(surface('[data-shortcut-modal="settings"]').boxShadow !== 'none' && surface('.dsx-settings-row').borderRadius !== '0px' && surface('[data-composer-card]').borderRadius !== '0px' && surface('[data-composer-card]').backgroundImage === 'none', id + ' 设置、设置行与输入框保持独立实色浮岛')
         setShellMode(true, false)
-        check(document.querySelector('.BynINW_centerCol').getBoundingClientRect().top > document.querySelector('.BynINW_frame').getBoundingClientRect().top + 32 && document.querySelector('#layout-handle').style.left === '164px', id + ' Windows 标题栏留白与原有拖拽位置保留')
+        check(document.querySelector('.BynINW_centerCol').getBoundingClientRect().top > document.querySelector('.BynINW_frame').getBoundingClientRect().top + 32 && document.querySelector('#layout-handle').style.left === '240px', id + ' Windows 标题栏留白与原有拖拽位置保留')
         setShellMode(true, true)
         check(document.querySelector('.BynINW_sidebarCol').getBoundingClientRect().width === 0 && surface('.BynINW_sidebarCol').boxShadow === 'none' && document.querySelector('.BynINW_centerCol').getBoundingClientRect().left - document.querySelector('.BynINW_frame').getBoundingClientRect().left < 16, id + ' Windows 收起侧栏后无残留浮岛或横向占位')
         setShellMode(false, false)
+        const rect = selector => document.querySelector(selector).getBoundingClientRect()
+        const edge = rect('.BynINW_sidebarCol').right
+        check(rect('.preview-sidebar').right <= edge && edge - rect('#button').right >= 12 && edge - rect('#workspace-row').right >= 12 && edge - rect('#workspace-time').right >= 20, id + ' 内层固定宽度受浮岛约束，按钮、长标题行和时间保留右侧间距')
+        document.querySelector('#workspace-row').classList.add('hIlkoa_menuOpen')
+        check(edge - rect('#workspace-actions').right >= 20, id + ' 会话操作按钮显示时仍保留右侧间距')
+        document.querySelector('#workspace-row').classList.remove('hIlkoa_menuOpen')
+        const list = document.querySelector('._9lTDKa_list')
+        list.scrollTop = 100
+        check(list.scrollTop > 0 && list.scrollWidth <= list.clientWidth, id + ' 工作区列表可纵向滚动且没有横向溢出')
+        list.scrollTop = 0
+        setRightMode(true); await tick()
+        const right = rect('#right-pane'), column = rect('[data-rightbar-col]'), shell = rect('.BynINW_frame')
+        check(right.left > column.left && right.right < shell.right && right.top > shell.top && right.bottom < shell.bottom && surface('#right-pane').borderRadius === surface('.BynINW_centerCol').borderRadius && surface('#right-pane').overflow === 'hidden' && surface('#right-pane').boxShadow !== 'none', id + ' 停靠右栏上下及两侧留白，标签和内容统一圆角裁切')
+        setRightMode(true, true); await tick()
+        check(rect('[data-rightbar-col]').width === 0 && rect('#right-pane').width > 200 && rect('#right-pane').right < rect('.BynINW_frame').right, id + ' 零宽轨道右栏仍正常覆盖主内容并保持右侧留白')
+        setRightMode(true, true, false, true); await tick()
+        check(surface('[data-dockkit-empty] > [data-dockkit-pane]').borderRadius === surface('#right-pane').borderRadius && surface('[data-dockkit-empty]').backgroundColor === 'rgba(0, 0, 0, 0)', id + ' 空右栏同样圆角，外层不残留方角底色')
+        setRightMode(true, true, false, false, true); await tick()
+        check(rect('[data-dockkit-column="1"] > [data-dockkit-pane]').width > 100 && surface('[data-dockkit-column="1"] > [data-dockkit-pane]').borderRadius === surface('#right-pane').borderRadius && surface('[data-dockkit-divider]').pointerEvents !== 'none', id + ' 双停靠面板圆角一致，分隔拖拽柄仍可命中')
+        setShellMode(true, false); setRightMode(true, true, true); await tick()
+        check(rect('#right-pane').top >= rect('.BynINW_frame').top + 32 + 6 && rect('#right-pane').left >= rect('.BynINW_centerCol').left && surface('#right-pane').borderTopRightRadius !== '0px', id + ' Windows 全屏右栏保持标题栏间距与四角圆角')
+        setShellMode(true, true); setRightMode(true, true, true); await tick()
+        check(rect('.BynINW_sidebarCol').width === 0 && rect('#right-pane').left > rect('.BynINW_frame').left && rect('#right-pane').right < rect('.BynINW_frame').right, id + ' 左栏收起后全屏右栏没有横向越界')
+        setRightMode(false); await tick()
+        check(surface('#right-pane').visibility === 'hidden', id + ' 右栏关闭后停靠内容保持隐藏')
+        setShellMode(false, false); setRightMode()
       }
       for (const id of ['sunset', 'dark', 'light', 'system']) {
         flush(() => document.querySelector('[data-theme="' + id + '"]').click())
@@ -206,5 +258,6 @@ try {
       theme.setFontSize(14)
       status.textContent = 'PASS ' + count + ' 项浏览器集成检查'; status.className = 'pass'
     } catch (error) { status.textContent = 'FAIL'; errorNode.textContent = error.stack }
+    finally { document.documentElement.classList.remove('fixture-checking') }
   })
 } catch (error) { status.textContent = 'FAIL'; errorNode.textContent = error.stack }

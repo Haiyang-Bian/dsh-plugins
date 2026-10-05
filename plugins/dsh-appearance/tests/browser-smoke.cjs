@@ -40,7 +40,7 @@ for (const [variable, route] of [['base_css_default', '/base.css'], ['design_pla
 const frontendFile = [...app.files.keys()].find(file => /dsh-web-frontend\/dist\/assets\/index-[^/]+\.css$/.test(file))
 if (!frontendFile) throw new Error('Missing installed frontend typography CSS')
 assets.set('/frontend.css', ['text/css', app.read(frontendFile)])
-const surfaceCSS = ['layout', 'sidebar', 'conversation', 'settings-general'].flatMap(name => {
+const surfaceCSS = ['layout', 'sidebar', 'workspace', 'sidebar-right', 'conversation', 'settings-general'].flatMap(name => {
   const code = app.read(modulePath('dsh-client-ui-' + name) + 'client.js')
   return [...code.matchAll(/const css(?:\$\d+)? = ("(?:[^"\\]|\\.)*");/g)].map(match => JSON.parse(match[1]))
 }).join('\n')

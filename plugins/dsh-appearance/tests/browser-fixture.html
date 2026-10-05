@@ -3,16 +3,25 @@
 <link rel="stylesheet" href="/base.css"><link rel="stylesheet" href="/palette.css"><link rel="stylesheet" href="/typography.css"><link rel="stylesheet" href="/frontend.css"><link rel="stylesheet" href="/surfaces.css">
 <style>
 body{margin:0;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}
-main{max-width:1180px;padding:24px;margin:auto}.columns{display:grid;grid-template-columns:minmax(320px, .8fr) minmax(0,1.2fr);gap:24px;margin-top:20px}.settings-shell{background:var(--dsw-alias-bg-layer-2);padding:20px;border-radius:16px}.host-preview{height:680px;grid-template-columns:164px minmax(0,1fr) minmax(0,0px);border:1px solid var(--dsw-alias-border-l3);border-radius:16px}.preview-sidebar{padding:20px 12px;gap:16px}.preview-sidebar p{margin:0}.preview-session{padding:24px;min-height:0;flex:1;box-sizing:border-box}.preview-session h2{font-size:20px}.preview-session p{line-height:1.8}.preview-composer{margin-top:auto;padding:14px}.preview-composer textarea{box-sizing:border-box;width:100%;font:inherit;resize:none;background:transparent;color:inherit;border:0;outline:none}.brand{font-family:var(--dsw-font-family-brand)}.note{font-size:12px;opacity:.7}.pass{color:#359563}#error{white-space:pre-wrap;color:#b84646}button{font-family:inherit}li{margin:6px 0}.checks{margin-top:20px}@media(max-width:900px){.columns{grid-template-columns:1fr}.host-preview{height:680px}}
-.preview-popups{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.preview-popups :is(._bubble_12mhf_1,._toast_l6cvn_6){position:static;max-width:100%;transform:none;animation:none}.preview-popups ._toast_l6cvn_6{padding:8px 12px}.fixture-modes{display:flex;gap:16px;margin-top:12px}.preview-sidebar._2H3hWW_collapsed :is(p,._2H3hWW_panelRow){display:none}.host-preview[data-sidebar-collapsed] .BynINW_handle{display:none}</style>
+main{max-width:1180px;padding:24px;margin:auto}.columns{display:grid;grid-template-columns:minmax(320px, .8fr) minmax(0,1.2fr);gap:24px;margin-top:20px}.settings-shell{background:var(--dsw-alias-bg-layer-2);padding:20px;border-radius:16px}.host-preview{height:680px;grid-template-columns:240px minmax(0,1fr) minmax(0,0px);border:1px solid var(--dsw-alias-border-l3);border-radius:16px}.preview-sidebar{gap:8px}.preview-sidebar p{margin:0}.preview-session{padding:24px;min-height:0;flex:1;box-sizing:border-box}.preview-session h2{font-size:20px}.preview-session p{line-height:1.8}.preview-composer{margin-top:auto;padding:14px}.preview-composer textarea{box-sizing:border-box;width:100%;font:inherit;resize:none;background:transparent;color:inherit;border:0;outline:none}.brand{font-family:var(--dsw-font-family-brand)}.note{font-size:12px;opacity:.7}.pass{color:#359563}#error{white-space:pre-wrap;color:#b84646}button{font-family:inherit}li{margin:6px 0}.checks{margin-top:20px}@media(max-width:900px){.columns{grid-template-columns:1fr}.host-preview{height:680px}}
+.preview-popups{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.preview-popups :is(._bubble_12mhf_1,._toast_l6cvn_6){position:static;max-width:100%;transform:none;animation:none}.preview-popups ._toast_l6cvn_6{padding:8px 12px}.fixture-modes{display:flex;gap:16px;margin-top:12px}.preview-sidebar._2H3hWW_collapsed :is(p,._2H3hWW_panelRow){display:none}.host-preview[data-sidebar-collapsed] .BynINW_handle{display:none}.fixture-modes{flex-wrap:wrap}.preview-only .columns{grid-template-columns:minmax(0,1fr)}.preview-only #settings{display:none}.preview-sidebar._2H3hWW_collapsed ._2H3hWW_regionArea{display:none}.fixture-tab-content{flex:1;min-height:0;overflow:auto;padding:16px;box-sizing:border-box}.fixture-tab-content p{overflow-wrap:anywhere}.fixture-header{height:40px;display:flex;align-items:center;padding:0 12px;gap:12px}.fixture-header button{margin-left:auto}.fixture-files{padding-left:16px;line-height:2}.hIlkoa_rowActions button{font:inherit;color:inherit;background:transparent;border:0}.fixture-list-spacer{height:680px}.fixture-checking .OUqwTW_panel :is([data-dockkit-host="dock"],[data-dockkit-empty],[data-dockkit-divider]){transition:none}</style>
 <main><h2>DSH 主题与设置验证</h2><p class="note">真实 React 与安装版 DSH 运行时、字号控件和外壳 CSS。设置容器与聊天内容为集成夹具。</p>
 <button id="run" disabled>运行集成检查</button> <span id="status">初始化中</span>
-<div class="fixture-modes"><label><input type="checkbox" id="windows-mode"> Windows 标题栏夹具</label><label><input type="checkbox" id="collapsed-mode"> 收起侧栏夹具</label></div><div class="columns"><div id="settings"></div>
+<div class="fixture-modes"><label><input type="checkbox" id="windows-mode"> Windows 标题栏夹具</label><label><input type="checkbox" id="collapsed-mode"> 收起侧栏夹具</label><label><input type="checkbox" id="right-mode"> 展开右栏</label><label><input type="checkbox" id="overlay-mode"> 右栏零轨道</label><label><input type="checkbox" id="fullscreen-mode"> 右栏全屏</label><label><input type="checkbox" id="empty-mode"> 空右栏</label><label><input type="checkbox" id="split-mode"> 双面板</label><label><input type="checkbox" id="preview-mode"> 仅界面预览</label></div><div class="columns"><div id="settings"></div>
 <section class="BynINW_frame host-preview" aria-label="宿主主题预览">
-  <aside class="BynINW_sidebarCol"><div class="_2H3hWW_root preview-sidebar">
+  <aside class="BynINW_sidebarCol"><div class="_2H3hWW_root preview-sidebar" style="width:240px">
     <p class="brand" id="brand">DeepSeek Harness</p>
     <button class="_2H3hWW_newSession" id="button">＋ 新建对话</button>
-    <p class="note">工作区</p><button class="_2H3hWW_panelRow">主题设计</button><button class="_2H3hWW_panelRow">开发笔记</button>
+    <nav class="_2H3hWW_panelList"><button class="_2H3hWW_panelRow">插件</button><button class="_2H3hWW_panelRow">自动化任务</button></nav>
+    <div class="_2H3hWW_regionArea"><div class="_9lTDKa_root">
+      <div class="_9lTDKa_sectionHeader"><span class="_9lTDKa_sectionLabel">工作区</span><div class="_9lTDKa_headerActions"><button class="_9lTDKa_iconButton" aria-label="工作区设置">☷</button><button class="_9lTDKa_iconButton" aria-label="添加工作区">＋</button></div></div>
+      <div class="_9lTDKa_listArea"><div class="_9lTDKa_treeBody"><div class="_9lTDKa_list" role="tree" aria-label="工作区会话">
+        <div class="hIlkoa_projectRow" role="treeitem"><span class="hIlkoa_slot">▱</span><span class="hIlkoa_title">默认工作区</span></div>
+        <div class="hIlkoa_sessionRow hIlkoa_selected" role="treeitem" id="workspace-row" style="--dsh-workspace-indent:16px"><span class="hIlkoa_slot"></span><span class="hIlkoa_title">Harness 插件颜色主题方案</span><span class="hIlkoa_time" id="workspace-time">22 小时</span><span class="hIlkoa_rowActions" id="workspace-actions"><button aria-label="会话操作">⋯</button></span></div>
+        <div class="hIlkoa_sessionRow" role="treeitem" style="--dsh-workspace-indent:16px"><span class="hIlkoa_slot"></span><span class="hIlkoa_title">了解助手功能</span><span class="hIlkoa_time">1 天</span></div>
+        <div class="fixture-list-spacer"></div>
+      </div></div></div>
+    </div></div>
     <p class="note" style="margin-top:auto">背景为真实宿主外壳样式</p>
   </div></aside>
   <div class="BynINW_centerCol"><div class="Dc7zOa_root" id="conversation-root">
@@ -22,7 +31,20 @@ main{max-width:1180px;padding:24px;margin:auto}.columns{display:grid;grid-templa
       <div class="RlGAzG_card preview-composer" data-composer-card><textarea id="composer" aria-label="测试输入框" rows="3">输入框 / Type your message</textarea><span class="note">正文与输入区保持清晰底色</span></div>
     </div>
   </div></div>
-<div class="BynINW_rightbarCol" data-rightbar-col></div><div class="BynINW_handle" id="layout-handle" style="left:164px"></div></section></div>
+<div class="BynINW_rightbarCol" data-rightbar-col>
+  <div class="OUqwTW_panel" data-sidebar-right-session="fixture" data-sidebar-right-panel="push" aria-hidden="true" style="width:240px;--dsh-sidebar-width:240px">
+    <div class="OUqwTW_panelBody"><div class="_tabLayout_6nhg2_134" id="right-layout" style="grid-template-columns:minmax(0,1fr)">
+      <div class="_tabCell_6nhg2_142" data-dockkit-host="dock" data-dockkit-column="0" style="grid-column:1;grid-row:1">
+        <section class="_tabHost_6nhg2_162 _pane_6nhg2_209" data-dockkit-pane="fixture-main" data-dockkit-column="0" tabindex="-1" id="right-pane">
+          <header class="_tabHostHeader_6nhg2_177 fixture-header"><span>文件</span><button aria-label="右栏控件">⋯</button></header><div class="fixture-tab-content"><h3>工作区文件</h3><p>圆角容纳标签栏与内容区。</p><ul class="fixture-files"><li>src</li><li>tests</li><li>README.md</li></ul></div>
+        </section>
+      </div>
+      <div class="_emptyTabHost_6nhg2_143" data-dockkit-empty style="display:none;grid-column:1;grid-row:1"><section class="_pane_6nhg2_209" data-dockkit-pane="fixture-empty"><header class="fixture-header">新页面</header><div class="fixture-tab-content"><p>打开文件、浏览器或终端</p></div></section></div>
+      <div class="_divider_6nhg2_39 _tabLayoutDivider_6nhg2_186" data-dockkit-divider="fixture:0" style="display:none;grid-column:2;grid-row:1"></div>
+      <div class="_tabCell_6nhg2_142" data-dockkit-host="dock" data-dockkit-column="1" style="display:none;grid-column:3;grid-row:1"><section class="_tabHost_6nhg2_162 _pane_6nhg2_209" data-dockkit-pane="fixture-second" data-dockkit-column="1"><header class="fixture-header">浏览器</header><div class="fixture-tab-content"><p>第二个停靠面板</p></div></section></div>
+    </div></div>
+  </div>
+</div><div class="BynINW_handle" id="layout-handle" style="left:240px"></div></section></div>
 <details class="checks"><summary>浏览器检查结果</summary><ol id="results"></ol></details><pre id="error"></pre></main>
 <script src="/react.js"></script><script src="/react-dom.js"></script>
 <script>window.factories=new Map();window.__ModuleLoader__={load:entry=>factories.set(entry.id,entry.factory)};</script>

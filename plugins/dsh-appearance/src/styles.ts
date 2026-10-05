@@ -74,6 +74,29 @@ body[data-dsh-appearance-layout="island"] :is(.BynINW_sidebarCol > ._2H3hWW_root
   background-color: transparent;
   background-image: none;
 }
+/* SidebarRoot carries an inline pixel width for the original track. Clamp it
+ * to the inset column so buttons, rows and the scrollbar retain host padding. */
+body[data-dsh-appearance-layout="island"] .BynINW_sidebarCol > ._2H3hWW_root {
+  max-width: 100%;
+  min-width: 0;
+}
+/* The right column may have zero width. Inset the anchored panel itself, keeping
+ * its inline width, slide transform and resize track under host control. Do not
+ * clip the wrapper: detached panes and drag targets can extend outside it. */
+body[data-dsh-appearance-layout="island"] [data-sidebar-right-panel] {
+  box-sizing: border-box;
+  padding: 10px 10px 10px 5px;
+}
+body[data-dsh-appearance-layout="island"] [data-sidebar-right-panel] [data-dockkit-empty] {
+  background: transparent;
+}
+body[data-dsh-appearance-layout="island"] [data-rightbar-col] [data-sidebar-right-panel] :is([data-dockkit-host="dock"], [data-dockkit-empty]) > [data-dockkit-pane] {
+  box-sizing: border-box;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsh-appearance-island-radius);
+  background: var(--dsw-alias-bg-layer-1);
+  box-shadow: var(--dsh-appearance-island-shadow);
+}
 /* Windows collapses the sidebar track to zero and moves its controls into the
  * titlebar. Margins/borders would otherwise leave a phantom sidebar surface. */
 html[data-windows-titlebar] body[data-dsh-appearance-layout="island"] .BynINW_frame[data-sidebar-collapsed] > .BynINW_sidebarCol {
@@ -126,6 +149,7 @@ body[data-dsh-appearance-layout="island"] :is(.dsx-font-select, .dsx-custom-inpu
   body[data-dsh-appearance-layout="island"] { --dsh-appearance-island-radius: 18px; }
   body[data-dsh-appearance-layout="island"] .BynINW_frame > .BynINW_sidebarCol { margin: 6px 3px 6px 6px; }
   body[data-dsh-appearance-layout="island"] .BynINW_frame > .BynINW_centerCol { margin: 6px 6px 6px 3px; }
+  body[data-dsh-appearance-layout="island"] [data-sidebar-right-panel] { padding: 6px 6px 6px 3px; }
   body[data-dsh-appearance-layout="island"] :is(.dsx-settings-row, [data-slot="settings.general.item"] > *) { padding: 12px; }
 }
 @media (forced-colors: active) {
