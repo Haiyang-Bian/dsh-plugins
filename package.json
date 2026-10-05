@@ -6,6 +6,6 @@
     "test": "pnpm -r run test",
     "typecheck": "pnpm -r run typecheck",
     "build": "pnpm -r run build",
-    "test:browser": "pnpm --filter dsh-appearance run test:browser"
+    "test:browser": "pnpm -r --parallel run test:browser"
   }
 }

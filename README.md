@@ -2,7 +2,10 @@
 
 一个 Git 仓库管理多个独立 DSH 插件，使用 pnpm workspace 和根目录共享锁文件。
 
-当前插件：[DSH 外观增强](plugins/dsh-appearance/README.md)，包名 `dsh-appearance`，版本 `0.10.0`。
+当前插件：
+
+- [DSH 外观增强](plugins/dsh-appearance/README.md)：`dsh-appearance`，版本 `0.10.0`。
+- [DSH 使用统计](plugins/dsh-usage/README.md)：`dsh-usage`，版本 `0.1.0`，原生侧栏入口与图表仪表盘。
 
 ## 开发
 
@@ -17,7 +20,7 @@ pnpm --filter dsh-appearance run watch
 pnpm run test:browser
 ```
 
-根目录的测试、类型检查和构建递归执行各插件同名命令。浏览器验证命令当前指向外观插件；详细边界和结果见插件的 VALIDATION.md。
+根目录的测试、类型检查和构建递归执行各插件同名命令。浏览器验证命令并行启动各插件的夹具，分别打开输出的本地 URL 自动运行检查；详细边界和结果见各插件的 VALIDATION.md。单插件可执行 `pnpm --filter dsh-usage run test:browser`。
 
 ## 独立构建与打包
 
