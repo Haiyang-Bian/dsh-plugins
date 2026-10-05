@@ -39,6 +39,7 @@ export const statusSchema = z.object({
 export type Status = z.infer<typeof statusSchema>
 export const dashboardSchema = z.object({
   schemaVersion: z.literal(1), timezone: z.string(), totals: totalsSchema,
+  coverage: z.object({ firstEventAt: n.nullable(), lastEventAt: n.nullable(), auxiliarySince: n }),
   daily: z.array(z.object({ day: z.string(), totals: totalsSchema })),
   models: z.array(z.object({ key: z.string(), provider: z.string(), model: z.string(), totals: totalsSchema })),
   heatmap: z.array(z.object({ day: z.string(), calls: n, total: n, inRange: z.boolean() })),

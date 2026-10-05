@@ -5,6 +5,10 @@ const { TypertRegistry } = require('@deepseek-ai/dsh-typert-registry')
 const { TypertGatewayService } = require('@deepseek-ai/dsh-api-gateway')
 const host = require('./load.cjs')('host')
 const { markAgentLoopRequest } = require('@deepseek-ai/dsh-llm')
+test('external SDK modules declare peers for the desktop canonical module resolver', () => {
+  const pkg = require('../package.json')
+  for (const name of ['@deepseek-ai/dsh-llm', '@deepseek-ai/dsh-typert-protocol', '@deepseek-ai/dsh-storage-domain']) assert.equal(pkg.peerDependencies[name], '0.2.0-rc.2')
+})
 test('real Cordis host, strict Gateway query/export, binding and loop ownership', async () => {
   const ctx = new Context(), records = new Map()
   new TypertRegistry(ctx)

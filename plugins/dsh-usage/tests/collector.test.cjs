@@ -34,7 +34,7 @@ test('write errors preserve memory and export; retry saves without duplicates', 
   const f = fixture(), c = new Collector(f.source, f.open, () => {}); await c.backfill; f.setFail(true)
   c.ingest({ id: 'a' }, 0, message(1)); const data = await c.query(filter)
   assert.equal(data.totals.calls, 2); assert.equal(data.status.storage, 'memory'); assert.equal(JSON.parse((await c.export(filter, 'json')).text).totals.calls, 2)
-  f.setFail(false); await c.query(filter); await c.close()
+  f.setFail(false); const recovered = await c.query(filter); assert.equal(recovered.status.storage, 'durable'); assert.equal(recovered.status.error, null); await c.close()
   assert.equal(f.saved.get('a').facts.length, 2)
 })
 test('failed storage open supports bounded memory export without breaking requests', async () => {
@@ -82,4 +82,24 @@ test('aborted queries reject and unload during slow initialization closes the ac
   let release; const c = new Collector(f.source, () => new Promise(resolve => { release = () => resolve(f.domain) }), () => {})
   await assert.rejects(() => c.query(filter, abort.signal)); const closing = c.close(); release(); await closing
   assert.equal(f.closed(), 1)
+})
+test('full auxiliary queue preserves original stream errors and bounds pending writes', async () => {
+  const f = fixture([]); let release
+  const c = new Collector(f.source, () => new Promise(resolve => { release = () => resolve(f.domain) }), () => {})
+  for (let i = 0; i < 1000; i++) for await (const _ of c.observe({ provider: 'p', model: 'm' }, async function* () { yield { type: 'finish', reason: { kind: 'stop' } } }, false)) {}
+  const original = Error('original')
+  await assert.rejects(async () => { for await (const _ of c.observe({ provider: 'p', model: 'm' }, async function* () { throw original }, false)) {} }, original)
+  release(); await c.backfill; assert.equal((await c.query(filter)).totals.calls, 1000); await c.close()
+})
+test('reconcile persisted cursors repairs extraction without duplicating old calls', async () => {
+  const f = fixture([e(0, 'user/message', { role: 'user', source: { kind: 'user' } }), message(1)])
+  const { emptyRecord, fold, sanitizeEvent } = require('./load.cjs')('metrics')
+  f.saved.set('a', fold(emptyRecord(), [sanitizeEvent(message(1))], { id: 'a', workspace: '/a', category: 'conversation', inherited: 0 }))
+  const c = new Collector(f.source, f.open, () => {}); await c.backfill
+  const data = await c.query(filter); assert.equal(data.totals.inputs, 1); assert.equal(data.totals.calls, 1); await c.close()
+})
+test('explicit auxiliary aborted finish remains cancelled without an aborted signal', async () => {
+  const f = fixture([]), c = new Collector(f.source, f.open, () => {}); await c.backfill
+  for await (const _ of c.observe({ provider: 'p', model: 'm' }, async function* () { yield { type: 'finish', reason: { kind: 'aborted' } } }, false)) {}
+  assert.equal((await c.query(filter)).totals.cancelled, 1); await c.close()
 })

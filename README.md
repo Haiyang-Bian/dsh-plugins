@@ -20,7 +20,7 @@ pnpm --filter dsh-appearance run watch
 pnpm run test:browser
 ```
 
-根目录的测试、类型检查和构建递归执行各插件同名命令。浏览器验证命令并行启动各插件的夹具，分别打开输出的本地 URL 自动运行检查；详细边界和结果见各插件的 VALIDATION.md。单插件可执行 `pnpm --filter dsh-usage run test:browser`。
+根目录的测试、类型检查和构建递归执行各插件同名命令。浏览器验证命令并行启动各插件的夹具，分别打开输出的本地 URL；统计夹具自动检查，外观夹具点击“运行集成检查”；详细边界和结果见各插件的 VALIDATION.md。单插件可执行 `pnpm --filter dsh-usage run test:browser`。
 
 ## 独立构建与打包
 

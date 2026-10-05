@@ -24,6 +24,7 @@ export class Collector {
   private pending = 0
   private jobs = new Set<Promise<unknown>>()
   private closing?: Promise<void>
+  private writeError = '统计写入失败；内存数据仍可查看和导出，将继续尝试保存。'
   readonly ready: Promise<void>
   readonly backfill: Promise<void>
   constructor(private source: Source, open: () => Promise<Domain>, private warn: (message: string) => void = console.warn) {
@@ -52,7 +53,15 @@ export class Collector {
         const read = await this.source.readSession(id)
         const meta = sessionMeta(read.session, read.inheritedEventCount); this.metadata.set(id, meta)
         const events = read.events.map(sanitizeEvent).filter((e): e is EventMeta => e !== null)
-        await this.enqueue(() => this.merge(id, events, meta))
+        await this.enqueue(async () => {
+          // Reconcile a readable log with retained metadata. This also repairs
+          // old extraction mistakes without discarding deleted-session facts.
+          const before = this.records.get(id) ?? emptyRecord(), rebuilt = fold(emptyRecord(), events, meta)
+          const facts = new Map(before.facts.map(fact => [fact.id, fact]))
+          for (const fact of rebuilt.facts) facts.set(fact.id, fact)
+          const after = { ...(rebuilt.cursor >= before.cursor ? rebuilt : before), facts: [...facts.values()] }
+          this.records.set(id, after); this.dirty.add(id); await this.persist(id)
+        })
         this.status.readSessions++
       } catch { if (this.active) { this.status.failedSessions++; this.fail('部分历史会话不可读取；其用量暂未覆盖。') } }
     })
@@ -75,6 +84,7 @@ export class Collector {
     this.records.set(id, after); this.dirty.add(id); await this.persist(id)
   }
   private async persist(id: string) {
+    this.status.updatedAt = Date.now()
     if (!this.domain) {
       // A failed open must not turn into unbounded in-memory telemetry.
       let count = 0
@@ -84,34 +94,41 @@ export class Collector {
       }
       return
     }
-    try { await this.domain.table('sessions').put(id, this.records.get(id)!); this.dirty.delete(id); this.status.updatedAt = Date.now() }
-    catch { this.status.storage = 'memory'; this.fail('统计写入失败；内存数据仍可查看和导出，将继续尝试保存。') }
+    try {
+      await this.domain.table('sessions').put(id, this.records.get(id)!); this.dirty.delete(id)
+      if (this.dirty.size === 0) {
+        this.status.storage = 'durable'
+        if (this.status.error === this.writeError) { this.status.error = this.status.failedSessions ? '部分历史会话不可读取；其用量暂未覆盖。' : null; this.status.state = this.status.error ? 'degraded' : 'ready' }
+      }
+    } catch { this.status.storage = 'memory'; this.fail(this.writeError) }
   }
   observe(options: { provider: string; model: string; sessionId?: string; purpose?: string; signal?: AbortSignal }, next: () => AsyncIterable<unknown>, isLoop: boolean): AsyncIterable<unknown> {
     if (isLoop || !this.active) return next()
     const owner = this
     return { async *[Symbol.asyncIterator]() {
       const started = Date.now(), id = 'aux:' + crypto.randomUUID()
-      let usage: Fact['usage'] = null, outcome: Fact['outcome'] = 'cancelled'
+      let usage: Fact['usage'] = null, outcome: Fact['outcome'] = 'cancelled', finished = false
       try {
         for await (const chunk of next()) {
           const c = chunk as { type?: string; usage?: unknown; reason?: { kind: string } }
           if (c.type === 'usage') usage = reportedUsage(c.usage)
-          if (c.type === 'finish') outcome = ['abort', 'aborted', 'cancelled'].includes(c.reason?.kind ?? '') ? 'cancelled' : c.reason?.kind === 'error' ? 'failed' : 'success'
+          if (c.type === 'finish') { finished = true; outcome = ['abort', 'aborted', 'cancelled'].includes(c.reason?.kind ?? '') ? 'cancelled' : c.reason?.kind === 'error' ? 'failed' : 'success' }
           if (c.type === 'error') outcome = 'failed'
           yield chunk
         }
-        if (outcome === 'cancelled' && !options.signal?.aborted) outcome = 'success'
+        if (outcome === 'cancelled' && !finished && !options.signal?.aborted) outcome = 'success'
       } catch (error) { outcome = options.signal?.aborted ? 'cancelled' : 'failed'; throw error }
       finally {
-        if (owner.active) {
+        if (owner.active && owner.pending >= 1000) owner.fail('采集队列已满；历史可回填，未保存的辅助用量可能丢失。')
+        else if (owner.active) {
+          owner.pending++
           const time = Date.now()
           const category = options.purpose === 'session-title' || options.purpose === 'compaction' ? options.purpose : 'auxiliary'
           const fact: Fact = { id, time, kind: 'call', category, workspace: owner.metadata.get(options.sessionId ?? '')?.workspace ?? '未归属',
             provider: options.provider, model: options.model, outcome, usage, durationMs: time - started }
           const job = owner.ready.then(() => owner.enqueue(async () => {
             owner.records.set(id, { ...emptyRecord(), facts: [fact] }); owner.dirty.add(id); await owner.persist(id)
-          })).finally(() => owner.jobs.delete(job))
+          })).finally(() => { owner.pending--; owner.jobs.delete(job) })
           owner.jobs.add(job)
         }
       }

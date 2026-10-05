@@ -10,7 +10,7 @@ export interface SessionMeta { id: string; workspace: string; category: Category
 export function sessionMeta(header: unknown, inherited = 0): SessionMeta {
   const h = bag(header)
   return { id: string(h.id), workspace: string(h.cwd) || '未归属',
-    category: h.origin === 'subagent' || h.parentSession !== undefined ? 'subagent' : 'conversation', inherited }
+    category: h.origin === 'subagent' || (number(h.delegationDepth) ?? 0) > 0 ? 'subagent' : 'conversation', inherited }
 }
 export function reportedUsage(raw: unknown): Fact['usage'] {
   const u = bag(raw)
@@ -27,7 +27,10 @@ export function sanitizeEvent(raw: unknown): EventMeta | null {
   if (!['user/message', 'turn/start', 'turn/end', 'step/start', 'request/header', 'request/context', 'assistant/attempt', 'assistant/message'].includes(type)) return null
   const data: Bag = { turn: d.turn }
   if (type === 'turn/end') data.reason = string(bag(d.reason).kind)
-  if (type === 'user/message' || type === 'assistant/message') data.source = { ...bag(bag(d.message).source), replayState: undefined }
+  if (type === 'user/message' || type === 'assistant/message') {
+    const source = bag(type === 'user/message' ? d.source : bag(d.message).source)
+    data.source = { kind: string(source.kind), provider: string(source.provider), model: string(source.model) }
+  }
   if (type === 'request/header') {
     const c = bag(bag(d.header).config); data.provider = c.provider; data.model = c.model
   }
@@ -41,9 +44,6 @@ export function sanitizeEvent(raw: unknown): EventMeta | null {
         reason: chunk.type === 'finish' ? string(bag(chunk.reason).kind) || string(chunk.reason) : '', error: chunk.type === 'error' }
     }) : []
   }
-  // Source is whitelisted too: developer/message producers may carry arbitrary content.
-  const s = bag(data.source)
-  if (data.source) data.source = { kind: string(s.kind), provider: string(s.provider), model: string(s.model) }
   if (number(e.seq) === null || number(e.time) === null) return null
   return { seq: e.seq as number, time: e.time as number, type, data }
 }
@@ -131,7 +131,9 @@ export function summarize(facts: Iterable<Fact>, raw: Filter, status: Status): D
   }
   const options = new Map<string, string>()
   for (const f of rows) if (f.kind === 'call') options.set(modelKey(f.provider, f.model), `${f.provider} / ${f.model}`)
-  return { schemaVersion: 1, timezone: filter.timezone, totals, daily: [...days].sort(([a], [b]) => a.localeCompare(b)).map(([day, totals]) => ({ day, totals })),
+  let firstEventAt: number | null = null, lastEventAt: number | null = null
+  for (const f of rows) { firstEventAt = Math.min(firstEventAt ?? f.time, f.time); lastEventAt = Math.max(lastEventAt ?? f.time, f.time) }
+  return { schemaVersion: 1, timezone: filter.timezone, totals, coverage: { firstEventAt, lastEventAt, auxiliarySince: status.startedAt }, daily: [...days].sort(([a], [b]) => a.localeCompare(b)).map(([day, totals]) => ({ day, totals })),
     models: [...models.values()].sort((a, b) => b.totals.total - a.totals.total), heatmap,
     workspaces: [...new Set(rows.map(f => f.workspace))].sort(), modelOptions: [...options].map(([key, label]) => ({ key, label })), status: { ...status } }
 }

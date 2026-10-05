@@ -29,7 +29,7 @@ test('duplicate events and inherited fork prefix do not inflate usage', () => {
 })
 test('user inputs, entered Agent turns and model retry attempts remain distinct', () => {
   const record = fold([event(0, 'request/header', { header: { config: { provider: 'p', model: 'm' } } }),
-    event(1, 'user/message', { message: { source: { kind: 'user' } } }), event(2, 'user/message', { message: { source: { kind: 'injection' } } }),
+    event(1, 'user/message', { role: 'user', source: { kind: 'user' } }), event(2, 'user/message', { role: 'user', source: { kind: 'injection' } }),
     event(3, 'turn/start', { turn: 1 }), event(4, 'step/start', { turn: 1 }),
     event(5, 'assistant/attempt', { stream: [{ type: 'chunk', time: 4, chunk: { type: 'finish', reason: { kind: 'error' } } }] }),
     event(6, 'assistant/message', { usage }), event(7, 'step/start', { turn: 1 }), event(8, 'assistant/message', { usage })])
@@ -70,4 +70,13 @@ test('date validation, gap filling and exports retain coverage metadata', () => 
   assert.equal(data.daily.length, 3)
   assert.equal(JSON.parse(m.exportDashboard(data, 'json').text).status.storage, 'durable')
   assert.ok(m.exportDashboard(data, 'csv').text.includes('date,input,output'))
+})
+test('fork parent does not classify ordinary conversations as delegated subagents', () => {
+  assert.equal(m.sessionMeta({ id: 'fork', parentSession: 'parent', origin: 'fork', delegationDepth: 0 }).category, 'conversation')
+  assert.equal(m.sessionMeta({ id: 'child', parentSession: 'parent', origin: 'subagent' }).category, 'subagent')
+  assert.equal(m.sessionMeta({ id: 'nested', delegationDepth: 2 }).category, 'subagent')
+})
+test('official user/message stores source directly; synthetic context is not human input', () => {
+  const record = fold([event(0, 'user/message', { id: 'u', role: 'user', content: [{ type: 'text', text: 'SECRET' }], source: { kind: 'user' } }), event(1, 'user/message', { role: 'user', source: { kind: 'goal' } })])
+  assert.equal(record.facts.length, 1); assert.equal(record.facts[0].kind, 'input'); assert.ok(!JSON.stringify(record).includes('SECRET'))
 })

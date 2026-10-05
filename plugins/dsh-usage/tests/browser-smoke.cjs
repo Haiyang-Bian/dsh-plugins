@@ -36,7 +36,7 @@ const gateway = new TypertGatewayService(ctx, { websocketHeartbeatIntervalMs: 20
 const records = new Map(), events = []
 for (let day = 0, seq = 0; day < 30; day++) {
   const time = Date.now() - (29 - day) * 86400000, provider = day % 2 ? 'DeepSeek' : 'OpenAI', model = day % 2 ? 'deepseek-chat' : 'gpt-model'
-  for (const [type, data] of [['request/header', { header: { config: { provider, model } } }], ['user/message', { message: { source: { kind: 'user' } } }], ['turn/start', { turn: day }], ['step/start', { turn: day }], ['assistant/message', { usage: { inputTokens: 1000 + day * 120, outputTokens: 250 + day * 20, cacheReadTokens: day * 60 }, message: { source: { provider, model } } }]]) events.push({ seq: seq++, time, type, data })
+  for (const [type, data] of [['request/header', { header: { config: { provider, model } } }], ['user/message', { role: 'user', source: { kind: 'user' } }], ['turn/start', { turn: day }], ['step/start', { turn: day }], ['assistant/message', { usage: { inputTokens: 1000 + day * 120, outputTokens: 250 + day * 20, cacheReadTokens: day * 60 }, message: { source: { provider, model } } }]]) events.push({ seq: seq++, time, type, data })
 }
 ctx.provide('sessionQuery', { listSessions: async () => [{ header: { id: 'fixture' } }], readSession: async () => ({ session: { id: 'fixture', cwd: '默认工作区' }, inheritedEventCount: 0, events }) })
 ctx.provide('storageDomain', { open: async () => ({ table: () => ({ entries: () => records.entries(), put: async (id, record) => records.set(id, record) }), close: async () => {} }) }); ctx.provide('llm', {})

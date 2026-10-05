@@ -10,6 +10,9 @@ const modules = { react: R, 'react-dom': window.ReactDOM, 'react-dom/client': wi
 const shared = name => { if (!(name in modules)) throw Error('Missing ' + name); return modules[name] }
 const installed = name => factories.get('@deepseek-ai/dsh-' + name)(shared)
 let ctx, theme, usageFiber, assertions = 0, activeIntervals = 0
+const visibilityListeners = new Set(), addListener = document.addEventListener.bind(document), removeListener = document.removeEventListener.bind(document)
+document.addEventListener = (type, listener, options) => { if (type === 'visibilitychange') visibilityListeners.add(listener); return addListener(type, listener, options) }
+document.removeEventListener = (type, listener, options) => { if (type === 'visibilitychange') visibilityListeners.delete(listener); return removeListener(type, listener, options) }
 const originalInterval = window.setInterval, originalClearInterval = window.clearInterval, intervals = new Set()
 window.setInterval = (...args) => { const id = originalInterval(...args); intervals.add(id); activeIntervals = intervals.size; return id }
 window.clearInterval = id => { intervals.delete(id); activeIntervals = intervals.size; originalClearInterval(id) }
@@ -60,12 +63,35 @@ try {
     check(document.querySelectorAll('.dsh-usage details').length === 6, '可访问数据表')
     check(document.querySelectorAll('.dsh-usage select').length === 4, '完整筛选栏')
     check(activeIntervals === 1, '页面仅一个刷新定时器')
+    check(visibilityListeners.size === 1, '页面仅一个可见性订阅')
     const models = document.querySelectorAll('.dsh-usage select')[2]; models.value = models.options[1].value; models.dispatchEvent(new Event('change', { bubbles: true })); await waitFor(() => document.querySelector('.dsh-usage .charts')); check(document.querySelector('.dsh-usage .summary').textContent.includes('15'), '模型筛选经真实严格 RPC 生效')
+    models.value = ''; models.dispatchEvent(new Event('change', { bubbles: true })); await tick()
+    const dates = document.querySelector('.dsh-usage select'); dates.value = 'custom'; dates.dispatchEvent(new Event('change', { bubbles: true })); await tick()
+    const dateInputs = document.querySelectorAll('.dsh-usage input[type=date]'), setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+    const parts = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
+    const localToday = ['year', 'month', 'day'].map(k => parts.find(p => p.type === k).value).join('-')
+    for (const input of dateInputs) { setter.call(input, localToday); input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); await tick() }
+    await waitFor(() => document.querySelector('.dsh-usage .summary .card:nth-child(2) .value')?.textContent === '1')
+    check(document.querySelector('.dsh-usage .summary .card:nth-child(2) .value').textContent === '1', '自定义本地日期包含截止日且不包含前一天')
+    const blobs = new Map(), captured = [], create = URL.createObjectURL, revoke = URL.revokeObjectURL, click = HTMLAnchorElement.prototype.click
+    URL.createObjectURL = blob => { const url = create(blob); blobs.set(url, blob); return url }
+    URL.revokeObjectURL = url => { blobs.delete(url); revoke(url) }
+    HTMLAnchorElement.prototype.click = function () { captured.push({ filename: this.download, blob: blobs.get(this.href) }) }
+    try {
+      for (const format of ['JSON', 'CSV']) {
+        [...document.querySelectorAll('.dsh-usage button')].find(b => b.textContent === '导出 ' + format).click(); await waitFor(() => captured.length === (format === 'JSON' ? 1 : 2)); await tick()
+        const item = captured.at(-1), text = await item.blob.text()
+        check(item.filename.endsWith('.' + format.toLowerCase()), format + ' 文件名')
+        check(format === 'JSON' ? JSON.parse(text).totals.calls === 1 : text.includes(localToday + ',') && text.split('\r\n').length === 2, format + ' 导出当前筛选经严格 RPC 返回的数据')
+      }
+      await tick(); check(blobs.size === 0, '导出 Blob URL 清理')
+    } finally { URL.createObjectURL = create; URL.revokeObjectURL = revoke; HTMLAnchorElement.prototype.click = click }
     layout.selectPanel(null); await tick(); await tick(); check(document.querySelector('#conversation'), '返回原会话'); check(activeIntervals === 0, '关闭页面清除刷新定时器')
+    check(visibilityListeners.size === 0, '关闭页面移除可见性订阅')
     await open(); check(document.querySelectorAll('.dsh-usage select')[2].value === '', '重开页面使用默认筛选'); check(sessions.byId.original.retainedBy.mainView === 1, '会话选择保持')
     for (const id of ['light', 'dark', 'sunset', 'aurora', 'sage', 'system']) { theme.setTheme(id); await tick(); const style = getComputedStyle(document.querySelector('.dsh-usage .card')); check(theme.getTheme().preference === id, id + ' 真实主题激活'); check(style.borderRadius === '20px', id + ' 浮岛卡片'); check(style.color !== style.backgroundColor, id + ' 文字可见') }
     theme.setTheme('sage'); await tick()
-    for (let i = 0; i < 3; i++) { await usageFiber.dispose(); await tick(); await tick(); check(activeIntervals === 0, '卸载定时器基线 ' + i); check(!document.querySelector('button[aria-label="统计数据"]'), '卸载导航贡献 ' + i); check(layout.panelInfo.getSnapshot().activePanelId === null, '卸载返回会话 ' + i); check(!document.querySelector('style[data-dsh-usage]'), '卸载样式 ' + i); usageFiber = ctx.plugin(factories.get('dsh-usage')(shared)); await tick(); await tick(); await open() }
+    for (let i = 0; i < 3; i++) { await usageFiber.dispose(); await tick(); await tick(); check(activeIntervals === 0, '卸载定时器基线 ' + i); check(visibilityListeners.size === 0, '卸载可见性订阅基线 ' + i); check(!document.querySelector('button[aria-label="统计数据"]'), '卸载导航贡献 ' + i); check(layout.panelInfo.getSnapshot().activePanelId === null, '卸载返回会话 ' + i); check(!document.querySelector('style[data-dsh-usage]'), '卸载样式 ' + i); usageFiber = ctx.plugin(factories.get('dsh-usage')(shared)); await tick(); await tick(); await open() }
     check(connectionState.listeners.size === 1, '连续启停连接订阅基线')
     window.usageResult = { passed: assertions, error: null }; document.querySelector('#status').textContent = `${assertions} 项通过 · 真实宿主渲染器与严格 RPC`
   }
