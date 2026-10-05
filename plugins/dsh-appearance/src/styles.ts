@@ -70,13 +70,14 @@ body[data-dsh-appearance-layout="island"] .BynINW_frame > .BynINW_centerCol {
 body[data-dsh-appearance-layout="island"][data-dsx-surface-theme] .BynINW_frame > .BynINW_centerCol {
   background-image: linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 82%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 82%, transparent)), var(--dsh-appearance-canvas-image);
 }
-body[data-dsh-appearance-layout="island"] :is(.BynINW_sidebarCol > ._2H3hWW_root, .BynINW_centerCol .Dc7zOa_root, .BynINW_centerCol [data-conversation-content]) {
+body[data-dsh-appearance-layout="island"] :is(.BynINW_sidebarCol ._2H3hWW_root, .BynINW_centerCol .Dc7zOa_root, .BynINW_centerCol [data-conversation-content]) {
   background-color: transparent;
   background-image: none;
 }
 /* SidebarRoot carries an inline pixel width for the original track. Clamp it
- * to the inset column so buttons, rows and the scrollbar retain host padding. */
-body[data-dsh-appearance-layout="island"] .BynINW_sidebarCol > ._2H3hWW_root {
+ * to the inset column so buttons, rows and the scrollbar retain host padding.
+ * SlotOutlet adds a display:contents DOM anchor; use descendant selectors. */
+body[data-dsh-appearance-layout="island"] .BynINW_sidebarCol ._2H3hWW_root {
   max-width: 100%;
   min-width: 0;
 }

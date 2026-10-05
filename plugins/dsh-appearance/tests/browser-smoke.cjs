@@ -10,6 +10,8 @@ const { installedHost } = require('./installed-host.cjs')
 const app = installedHost(process.argv[2])
 const modulePath = name => 'dsh/node_modules/@deepseek-ai/' + name + '/lib/'
 const themeCode = app.read(modulePath('dsh-client-ui-theme') + 'client.js')
+const sidebarCode = app.read(modulePath('dsh-client-ui-sidebar') + 'client.js')
+const exposedSidebar = sidebarCode.replace('return module.exports;', 'exports.fixture={SidebarRoot};return module.exports;')
 const layoutCode = app.read(modulePath('dsh-client-ui-layout') + 'client.js')
 function classSource(source, name) {
   const start = source.indexOf('var ' + name + ' = class {')
@@ -27,6 +29,7 @@ const assets = new Map([
   ['/slots.js', ['text/javascript', app.read(modulePath('dsh-client-ui-slots') + 'index.js')]],
   ['/renderer.js', ['text/javascript', app.read(modulePath('dsh-client-ui-renderer') + 'client.js')]],
   ['/theme.js', ['text/javascript', exposedTheme]],
+  ['/sidebar.js', ['text/javascript', exposedSidebar]],
   ['/presenter.js', ['text/javascript', presenter]],
   ['/react.js', ['text/javascript', fs.readFileSync(path.join(path.dirname(require.resolve('react/package.json')), 'umd/react.development.js'), 'utf8')]],
   ['/react-dom.js', ['text/javascript', fs.readFileSync(path.join(path.dirname(require.resolve('react-dom/package.json')), 'umd/react-dom.development.js'), 'utf8')]],

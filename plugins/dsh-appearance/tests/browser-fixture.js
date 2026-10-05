@@ -26,29 +26,29 @@ const modules = {
   'react/jsx-runtime': { jsx, jsxs, Fragment: R.Fragment },
   '@deepseek-ai/cordis': Cordis, '@deepseek-ai/dsh-client-ui-slots': Slots,
   '@deepseek-ai/dsh-client-store': { defineStore },
-  '@deepseek-ai/dsh-client-ui-primitives': new Proxy({}, { get: () => primitive }),
+  '@deepseek-ai/dsh-client-ui-primitives': new Proxy({ Tooltip: ({ children }) => h(R.Fragment, null, children), isDarwinDesktop: () => false }, { get: (target, name) => target[name] || primitive }),
 }
 const shared = name => { if (!(name in modules)) throw new Error('Missing shared module ' + name); return modules[name] }
 const status = document.getElementById('status')
 const errorNode = document.getElementById('error')
 const runButton = document.getElementById('run')
 const ids = ['ui', 'button', 'brand', 'composer', 'heading', 'markdown']
-const family = id => getComputedStyle(document.getElementById(id)).fontFamily
+const node = id => id === 'button' ? document.querySelector('._2H3hWW_newSession') : id === 'brand' ? document.querySelector('._2H3hWW_brandName') : document.getElementById(id)
+const family = id => getComputedStyle(node(id)).fontFamily
 const capture = () => Object.fromEntries(ids.map(id => [id, family(id)]))
 const same = (a, b) => ids.every(id => a[id] === b[id])
 // Only the fixture changes window modes; plugin CSS owns no window listeners.
-function setShellMode(windows, collapsed) {
+let setSidebarOwner
+function setShellMode(windows, collapsed, preference = 280) {
   const html = document.documentElement
   const frame = document.querySelector('.host-preview')
-  const sidebar = document.querySelector('.preview-sidebar')
   html.toggleAttribute('data-windows-titlebar', windows)
   if (windows) html.style.setProperty('--dsh-windows-titlebar-height', '32px')
   else html.style.removeProperty('--dsh-windows-titlebar-height')
   frame.toggleAttribute('data-sidebar-collapsed', collapsed)
-  sidebar.classList.toggle('_2H3hWW_collapsed', collapsed)
-  const width = collapsed ? (windows ? 0 : 64) : 240
+  const width = collapsed ? (windows ? 0 : 56) : preference
   frame.style.setProperty('--dsh-windows-sidebar-width', width + 'px')
-  sidebar.style.width = collapsed ? '' : width + 'px'
+  if (setSidebarOwner) flush(() => setSidebarOwner({ collapsed, width }))
   frame.style.gridTemplateColumns = width + 'px minmax(0,1fr) minmax(0,0px)'
   document.querySelector('#layout-handle').style.left = width + 'px'
   document.querySelector('#windows-mode').checked = windows
@@ -81,7 +81,7 @@ for (const id of ['right-mode', 'overlay-mode', 'fullscreen-mode', 'empty-mode',
 document.getElementById('preview-mode').addEventListener('change', event => document.querySelector('main').classList.toggle('preview-only', event.target.checked))
 function layoutSnapshot() {
   const properties = ['marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'borderRadius', 'borderTopWidth', 'borderRightWidth', 'boxShadow', 'maxWidth', 'overflow']
-  return JSON.stringify(['.BynINW_sidebarCol', '.BynINW_centerCol', '.preview-sidebar', '[data-sidebar-right-panel]', '#right-pane', '[data-dockkit-empty]'].map(selector => {
+  return JSON.stringify(['.BynINW_sidebarCol', '.BynINW_centerCol', '._2H3hWW_root', '[data-sidebar-right-panel]', '#right-pane', '[data-dockkit-empty]'].map(selector => {
     const css = getComputedStyle(document.querySelector(selector))
     return properties.map(name => css[name])
   }))
@@ -120,22 +120,31 @@ try {
   const presenter = new ThemePresenter()
   const present = snapshot => presenter.apply(snapshot)
   ctx.on('theme/change', present); present(theme.getTheme())
-  const baseline = capture(); const codeBaseline = family('code')
+  let baseline, codeBaseline
   const surface = selector => getComputedStyle(document.querySelector(selector))
   const surfaceSelectors = ['.BynINW_frame', '.BynINW_centerCol', '.BynINW_sidebarCol', '._2H3hWW_root', '.Dc7zOa_root', '[data-conversation-content]']
-  const plainSurfaces = surfaceSelectors.map(selector => surface(selector).backgroundImage)
-  const plainLayout = layoutSnapshot()
+  let plainSurfaces, plainLayout
   const t = key => ({ appearance: '外观', light: '浅色', dark: '深色', system: '跟随系统', 'fontSize.title': '正文字号', 'fontSize.description': '字体大小', 'fontSize.increase': '增大字号', 'fontSize.decrease': '减小字号', 'fontSize.unit': 'px' }[key] || key)
   const localeListeners = new Set()
   ctx.slots.installLocale({ getSnapshot: () => ({ revision: 0 }), subscribe: fn => { localeListeners.add(fn); return () => localeListeners.delete(fn) }, bind: () => t })
+  const SidebarRoot = factories.get('@deepseek-ai/dsh-client-ui-sidebar')(shared).fixture.SidebarRoot
+  const panels = [{ id: 'plugins', label: '插件' }, { id: 'cron', label: '自动化任务' }]
+  const sidebarT = key => ({ 'session.new': '新会话', 'session.new.label': '新建会话', 'toggle.open': '打开侧边栏', 'toggle.collapse': '收起侧边栏' }[key] || key)
   let setOpen
   function SettingsRoot({ renderSlot }) {
     const [open, update] = R.useState(true); setOpen = update
-    return h('div', { className: 'settings-shell', 'data-shortcut-modal': 'settings' }, h('h3', null, '设置 → 通用'),
+    const [sidebar, updateSidebar] = R.useState({ collapsed: false, width: 280 }); setSidebarOwner = updateSidebar
+    return h(R.Fragment, null, window.ReactDOM.createPortal(renderSlot('sidebar', sidebar), document.querySelector('#sidebar-mount')), h('div', { className: 'settings-shell', 'data-shortcut-modal': 'settings' }, h('h3', null, '设置 → 通用'),
       h('button', { onClick: () => update(!open), id: 'toggle-settings' }, open ? '关闭设置' : '打开设置'),
-      open && renderSlot('settings.general.item', {}))
+      open && renderSlot('settings.general.item', {})))
   }
-  ctx.slots.register({ name: 'root', children: { 'settings.general.item': { kind: 'list', scope: 'root' } } }, SettingsRoot)
+  ctx.slots.register({ name: 'root', children: { sidebar: { kind: 'single', scope: 'root' }, 'settings.general.item': { kind: 'list', scope: 'root' } } }, SettingsRoot)
+  ctx.slots.register({ name: 'sidebar', children: Object.fromEntries(['sidebar.brand.mark', 'sidebar.brand.name', 'sidebar.toggle.badge', 'sidebar.workspaces', 'sidebar.settings', 'sidebar.footer.action', 'sidebar.panellist'].map(name => [name, { kind: name.endsWith('action') || name.endsWith('panellist') ? 'list' : 'single', scope: 'root' }])),
+    inject: () => ({ t: sidebarT, startSession: () => {}, toggleSidebar: () => {}, selectPanel: () => {}, usePanels: select => select(panels), useShortcuts: select => select([]), usePanelInfo: select => select({ activePanelId: null }) }) }, SidebarRoot)
+  ctx.slots.register({ name: 'sidebar.brand.name' }, () => h('span', null, 'DeepSeek Harness'))
+  // The shell and slot anchors are real installed components; workspace rows are samples.
+  const workspaceHTML = document.querySelector('#workspace-template').innerHTML
+  ctx.slots.register({ name: 'sidebar.workspaces' }, ({ wide }) => h('div', { hidden: !wide, style: { display: wide ? 'contents' : 'none' }, dangerouslySetInnerHTML: { __html: workspaceHTML } }))
   const appearanceStore = installed.createAppearanceRowStore()
   const fontSizeStore = installed.createFontSizeRowStore()
   let appearanceActions, sizeActions
@@ -149,8 +158,11 @@ try {
   ctx.slots.register({ name: 'settings.general.item', id: 'font-size', order: 11, locale: 'settings.theme', store: fontSizeStore,
     inject: actions => { sizeActions = actions; sync(theme.getTheme()); return { setFontSize: size => theme.setFontSize(size) } } }, installed.FontSizeRow)
   const entry = factories.get('dsh-appearance')(shared)
-  let activated = ctx.plugin(entry)
   const unmount = ctx.uiRenderer.mount(document.getElementById('settings'))
+  await tick()
+  baseline = capture(); codeBaseline = family('code')
+  plainSurfaces = surfaceSelectors.map(selector => surface(selector).backgroundImage); plainLayout = layoutSnapshot()
+  let activated = ctx.plugin(entry)
   await tick()
   runButton.disabled = false; status.textContent = '准备就绪'
   runButton.addEventListener('click', async () => {
@@ -158,6 +170,7 @@ try {
     document.documentElement.classList.add('fixture-checking')
     setShellMode(false, false); setRightMode()
     try {
+      check(document.querySelector('.BynINW_sidebarCol > [data-slot="sidebar"] > ._2H3hWW_root') && getComputedStyle(document.querySelector('[data-slot="sidebar"]')).display === 'contents', '真实侧栏组件经官方插槽锚点渲染，避免直接子级夹具误判')
       check(document.querySelectorAll('.dsx-theme-card').length === 6 && !document.querySelector('.dsx-root'), '六个主题合并到设置，悬浮窗已移除')
       check(getComputedStyle(document.querySelector('[aria-pressed="true"]')).outlineStyle === 'solid' && getComputedStyle(document.body).getPropertyValue('--dsw-alias-bg-layer-2').trim(), '宿主颜色变量和主题选中样式有效')
       check(document.querySelectorAll('optgroup').length === 6 && document.querySelector('.dsx-font-select').options.length === 16, '分组下拉保留 15 个预设及自定义选项')
@@ -184,13 +197,19 @@ try {
         check(document.body.getAttribute('data-dsh-appearance-layout') === 'island' && sidebar.left > frame.left && center.left > sidebar.right && center.right < frame.right && surface('.BynINW_centerCol').borderRadius !== '0px' && surface('.BynINW_centerCol').boxShadow !== 'none' && surface('.BynINW_frame').columnGap === 'normal' && surface('.BynINW_frame').paddingLeft === '0px' && !document.querySelector('[data-rightbar-col]').style.cssText, id + ' 浮岛在原有网格内留白，不改变宿主轨道和右栏锚点')
         check(surface('[data-shortcut-modal="settings"]').boxShadow !== 'none' && surface('.dsx-settings-row').borderRadius !== '0px' && surface('[data-composer-card]').borderRadius !== '0px' && surface('[data-composer-card]').backgroundImage === 'none', id + ' 设置、设置行与输入框保持独立实色浮岛')
         setShellMode(true, false)
-        check(document.querySelector('.BynINW_centerCol').getBoundingClientRect().top > document.querySelector('.BynINW_frame').getBoundingClientRect().top + 32 && document.querySelector('#layout-handle').style.left === '240px', id + ' Windows 标题栏留白与原有拖拽位置保留')
+        check(document.querySelector('.BynINW_centerCol').getBoundingClientRect().top > document.querySelector('.BynINW_frame').getBoundingClientRect().top + 32 && document.querySelector('#layout-handle').style.left === '280px', id + ' Windows 标题栏留白与原有拖拽位置保留')
         setShellMode(true, true)
         check(document.querySelector('.BynINW_sidebarCol').getBoundingClientRect().width === 0 && surface('.BynINW_sidebarCol').boxShadow === 'none' && document.querySelector('.BynINW_centerCol').getBoundingClientRect().left - document.querySelector('.BynINW_frame').getBoundingClientRect().left < 16, id + ' Windows 收起侧栏后无残留浮岛或横向占位')
         setShellMode(false, false)
         const rect = selector => document.querySelector(selector).getBoundingClientRect()
         const edge = rect('.BynINW_sidebarCol').right
-        check(rect('.preview-sidebar').right <= edge && edge - rect('#button').right >= 12 && edge - rect('#workspace-row').right >= 12 && edge - rect('#workspace-time').right >= 20, id + ' 内层固定宽度受浮岛约束，按钮、长标题行和时间保留右侧间距')
+        check(rect('._2H3hWW_root').right <= edge && edge - rect('._2H3hWW_newSession').right >= 12 && edge - rect('#workspace-row').right >= 12 && edge - rect('#workspace-time').right >= 20, id + ' 内层固定宽度受浮岛约束，按钮、长标题行和时间保留右侧间距')
+        for (const width of [264, 280, 420]) {
+          setShellMode(true, false, width)
+          const sideEdge = rect('.BynINW_sidebarCol').right
+          check(rect('._2H3hWW_root').width < width && sideEdge - rect('._2H3hWW_newSession').right >= 12 && sideEdge - rect('#workspace-row').right >= 12 && sideEdge - rect('#workspace-time').right >= 20 && surface('._2H3hWW_root').backgroundImage === 'none', id + ' Windows 插槽侧栏宽度 ' + width + ' px 时保留内容边距且不重复铺底')
+        }
+        setShellMode(false, false)
         document.querySelector('#workspace-row').classList.add('hIlkoa_menuOpen')
         check(edge - rect('#workspace-actions').right >= 20, id + ' 会话操作按钮显示时仍保留右侧间距')
         document.querySelector('#workspace-row').classList.remove('hIlkoa_menuOpen')
