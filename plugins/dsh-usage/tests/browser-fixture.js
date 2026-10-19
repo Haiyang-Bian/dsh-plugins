@@ -1,12 +1,13 @@
 import * as Cordis from '/cordis.js'
 import * as Slots from '/slots.js'
+import * as Zod from '/zod.js'
 import { ThemePresenter } from '/presenter.js'
 const R = window.React, h = R.createElement, flush = window.ReactDOM.flushSync
 const tick = () => new Promise(resolve => requestAnimationFrame(() => resolve()))
 function observable(initial) { let value = initial; const listeners = new Set(); return { getSnapshot: () => value, subscribe: fn => { listeners.add(fn); return () => listeners.delete(fn) }, set: next => { value = next; for (const fn of listeners) fn() }, listeners } }
 function defineStore(spec) { return { create() { const source = observable(spec.init()); return { ...source, actions: Object.fromEntries(Object.entries(spec.actions).map(([key, mutation]) => [key, (...args) => { const next = structuredClone(source.getSnapshot()); mutation(next, ...args); source.set(next) }])) } } } }
 const jsx = (type, props, key) => h(type, { ...props, key }), jsxs = jsx
-const modules = { react: R, 'react-dom': window.ReactDOM, 'react-dom/client': window.ReactDOM, 'react/jsx-runtime': { jsx, jsxs, Fragment: R.Fragment }, '@deepseek-ai/cordis': Cordis, '@deepseek-ai/dsh-client-ui-slots': Slots, '@deepseek-ai/dsh-client-store': { defineStore }, '@deepseek-ai/dsh-client-ui-primitives': new Proxy({ Tooltip: ({ children }) => h(R.Fragment, null, children), isDarwinDesktop: () => false }, { get: (t, k) => t[k] || (() => h('span', null, '◌')) }) }
+const modules = { zod: Zod, react: R, 'react-dom': window.ReactDOM, 'react-dom/client': window.ReactDOM, 'react/jsx-runtime': { jsx, jsxs, Fragment: R.Fragment }, '@deepseek-ai/cordis': Cordis, '@deepseek-ai/dsh-client-ui-slots': Slots, '@deepseek-ai/dsh-client-store': { defineStore }, '@deepseek-ai/dsh-client-ui-primitives': new Proxy({ Tooltip: ({ children }) => h(R.Fragment, null, children), isDarwinDesktop: () => false }, { get: (t, k) => t[k] || (() => h('span', null, '◌')) }) }
 const shared = name => { if (!(name in modules)) throw Error('Missing ' + name); return modules[name] }
 const installed = name => factories.get('@deepseek-ai/dsh-' + name)(shared)
 let ctx, theme, usageFiber, assertions = 0, activeIntervals = 0
@@ -35,7 +36,7 @@ try {
   const useSessions = select => select(sessions)
   const useStore = select => select(R.useSyncExternalStore(store.subscribe, store.getSnapshot))
   ctx.slots.provideRoot({ hooks: { panelInfo: panelSource } })
-  ctx.slots.register({ name: 'root', children: { sidebar: { kind: 'single', scope: 'root' }, main: { kind: 'keyed', scope: 'root' }, rightbar: { kind: 'single', scope: 'root' }, 'shell.overlay': { kind: 'list', scope: 'root' }, 'shell.leading': { kind: 'single', scope: 'root' } }, inject: () => ({ useStore, useSessions, usePanelInfo, actions: store.actions, t: x => x }) }, layoutModule.fixture.AppFrame)
+  ctx.slots.register({ name: 'root', children: { sidebar: { kind: 'single', scope: 'root' }, main: { kind: 'keyed', scope: 'root' }, rightbar: { kind: 'single', scope: 'root' }, 'shell.overlay': { kind: 'list', scope: 'root' }, 'shell.leading': { kind: 'single', scope: 'root' }, 'shell.bottom': { kind: 'single', scope: 'root' } }, inject: () => ({ useStore, useSessions, usePanelInfo, actions: store.actions, t: x => x }) }, layoutModule.fixture.AppFrame)
   const sidebar = installed('client-ui-sidebar').fixture.SidebarRoot
   const panels = observable([])
   ctx.slots.register({ name: 'sidebar', children: Object.fromEntries(['sidebar.brand.mark', 'sidebar.brand.name', 'sidebar.toggle.badge', 'sidebar.workspaces', 'sidebar.settings', 'sidebar.footer.action', 'sidebar.panellist'].map(name => [name, { kind: name.endsWith('action') || name.endsWith('panellist') ? 'list' : 'single', scope: 'root' }])), inject: () => ({ t: key => ({ 'session.new': '新对话', 'session.new.label': '新对话' }[key] || key), startSession: () => layout.selectPanel(null), toggleSidebar: () => layout.toggleSidebar(), selectPanel: id => layout.selectPanel(id), usePanels: select => select(R.useSyncExternalStore(panels.subscribe, panels.getSnapshot)), useShortcuts: select => select([]), usePanelInfo }) }, sidebar)
@@ -44,8 +45,8 @@ try {
   ctx.slots.register({ name: 'sidebar.brand.name' }, () => h('span', null, 'DeepSeek Harness'))
   ctx.slots.register({ name: 'sidebar.workspaces' }, () => h('div', { id: 'workspace' }, '工作区'))
   ctx.slots.register({ name: 'main', key: 'conversation' }, () => h('div', { id: 'conversation' }, '原先的对话'))
-  const preferences = observable({ value: { preference: 'light', fontSize: 14 } })
-  theme = new (installed('client-ui-theme').fixture.ThemeRuntime)(ctx, { getSnapshot: preferences.getSnapshot, subscribe: preferences.subscribe, set: (key, value) => { const next = structuredClone(preferences.getSnapshot()); next.value[key] = value; preferences.set(next) } }); ctx.provide('theme', theme)
+  const preferences = observable({ value: { preference: 'light', fontSize: 14, textFontSize: 14, codeFontSize: 14, terminalFontSize: 14, textFontFamily: '', codeFontFamily: '', terminalFontFamily: '' } })
+  theme = new (installed('client-ui-theme').fixture.ThemeRuntime)(ctx, { getSnapshot: preferences.getSnapshot, subscribe: preferences.subscribe, set: async (key, value) => { const next = structuredClone(preferences.getSnapshot()); next.value[key] = value; preferences.set(next) } }); ctx.provide('theme', theme)
   const presenter = new ThemePresenter(), present = snapshot => presenter.apply(snapshot)
   ctx.on('theme/change', present); present(theme.getTheme())
   const appearance = ctx.plugin(factories.get('dsh-appearance')(shared)); await tick()

@@ -5,7 +5,7 @@
 当前插件：
 
 - [DSH 外观增强](plugins/dsh-appearance/README.md)：`dsh-appearance`，版本 `0.10.0`。
-- [DSH 使用统计](plugins/dsh-usage/README.md)：`dsh-usage`，版本 `0.1.0`，原生侧栏入口与图表仪表盘。
+- [DSH 使用统计](plugins/dsh-usage/README.md)：`dsh-usage`，版本 `0.1.1`（DSH `0.2.1-rc.2`），原生侧栏入口与图表仪表盘。
 
 ## 开发
 

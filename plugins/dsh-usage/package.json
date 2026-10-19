@@ -1,31 +1,73 @@
 {
-  "name": "dsh-usage", "version": "0.1.0", "type": "module",
+  "name": "dsh-usage",
+  "version": "0.1.1",
+  "type": "module",
   "description": "Native DSH dashboard for model usage, tokens and conversation statistics.",
-  "main": "dist/host.js", "files": ["dist", "cordis.patch.yml", "README.md", "VALIDATION.md", "artifacts/browser-integration.jpg"],
-  "exports": {".": "./dist/host.js", "./client": "./dist/client.js", "./package.json": "./package.json"},
-  "scripts": {"test": "node --test tests/*.test.cjs", "typecheck": "tsc --noEmit", "build": "tsc --noEmit && node scripts/build.mjs", "prepack": "pnpm run build", "test:browser": "node tests/browser-smoke.cjs"},
+  "main": "dist/host.js",
+  "files": [
+    "dist",
+    "cordis.patch.yml",
+    "README.md",
+    "VALIDATION.md",
+    "artifacts/browser-integration.jpg"
+  ],
+  "exports": {
+    ".": "./dist/host.js",
+    "./client": "./dist/client.js",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && node scripts/build.mjs",
+    "prepack": "pnpm run build",
+    "test:browser": "node tests/browser-smoke.cjs"
+  },
   "devDependencies": {
-    "@deepseek-ai/cordis": "4.0.4",
-    "@deepseek-ai/dsh-client-ui-slots": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-client-ui-layout": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-client-ui-sidebar": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-session-query": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-session": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-storage-domain": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-typert-registry": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-typert-protocol": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-api-gateway": "0.2.0-rc.2",
-    "@types/react": "18.3.31", "react": "18.3.1", "react-dom": "18.3.1",
-    "typescript": "5.9.3", "vite": "5.4.21"
+    "@deepseek-ai/cordis": "4.0.5",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-client-ui-layout": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-client-ui-sidebar": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-session-query": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-session": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-storage-domain": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-typert-registry": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-typert-protocol": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-api-gateway": "0.2.1-rc.2",
+    "@types/react": "18.3.31",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "typescript": "5.9.3",
+    "vite": "5.4.21"
   },
-  "dependencies": {"zod": "4.6.5"},
+  "dependencies": {
+    "zod": "4.6.5"
+  },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "4.0.4",
-    "@deepseek-ai/dsh-typert-protocol": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-storage-domain": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-llm": "0.2.0-rc.2"
+    "@deepseek-ai/cordis": "~4.0.5",
+    "@deepseek-ai/dsh-typert-protocol": "^0.2.1-rc.2",
+    "@deepseek-ai/dsh-storage-domain": "^0.2.1-rc.2",
+    "@deepseek-ai/dsh-llm": "^0.2.1-rc.2"
   },
-  "dsh": {"bundle": {"patch": "./cordis.patch.yml"}, "client": {"platform": "web", "immediately": true, "inject": ["@deepseek-ai/dsh-client-ui-layout", "@deepseek-ai/dsh-client-ui-sidebar", "@deepseek-ai/dsh-api-gateway"]}},
-  "keywords": ["dsh-plugin", "statistics", "tokens"], "license": "MIT"
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-api-gateway"
+      ]
+    }
+  },
+  "keywords": [
+    "dsh-plugin",
+    "statistics",
+    "tokens"
+  ],
+  "license": "MIT"
 }

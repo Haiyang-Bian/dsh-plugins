@@ -7,7 +7,12 @@ const host = require('./load.cjs')('host')
 const { markAgentLoopRequest } = require('@deepseek-ai/dsh-llm')
 test('external SDK modules declare peers for the desktop canonical module resolver', () => {
   const pkg = require('../package.json')
-  for (const name of ['@deepseek-ai/dsh-llm', '@deepseek-ai/dsh-typert-protocol', '@deepseek-ai/dsh-storage-domain']) assert.equal(pkg.peerDependencies[name], '0.2.0-rc.2')
+  for (const name of ['@deepseek-ai/dsh-llm', '@deepseek-ai/dsh-typert-protocol', '@deepseek-ai/dsh-storage-domain']) {
+    assert.equal(pkg.peerDependencies[name], '^0.2.1-rc.2')
+    assert.equal(pkg.devDependencies[name], '0.2.1-rc.2')
+  }
+  assert.equal(pkg.devDependencies['@deepseek-ai/cordis'], '4.0.5')
+  assert.equal(pkg.peerDependencies['@deepseek-ai/cordis'], '~4.0.5')
 })
 test('real Cordis host, strict Gateway query/export, binding and loop ownership', async () => {
   const ctx = new Context(), records = new Map()
@@ -16,18 +21,24 @@ test('real Cordis host, strict Gateway query/export, binding and loop ownership'
   ctx.provide('sessionQuery', { listSessions: async () => [], readSession: async () => { throw Error('missing') } })
   ctx.provide('storageDomain', { open: async () => ({ table: () => ({ entries: () => records.entries(), put: async (id, value) => records.set(id, value) }), close: async () => {} }) })
   ctx.provide('llm', {})
+  // The in-process test carrier, like the desktop driver, supplies the identity.
+  const controller = new AbortController()
+  const peer = { id: 'usage-test-owner', ctx, principal: { kind: 'owner' }, signal: controller.signal, interactions: 'none', dispose: async () => controller.abort() }
+  const invoke = request => gateway.invoke({ ...request, peer })
   const fiber = ctx.plugin(host)
   await new Promise(resolve => setImmediate(resolve))
   assert.ok(ctx.dshUsage)
-  const result = await gateway.invoke({ namespace: 'dshUsage', method: 'query', args: { filter: { timezone: 'UTC' } } })
+  const result = await invoke({ namespace: 'dshUsage', method: 'query', args: { filter: { timezone: 'UTC' } } })
   assert.equal(result.schemaVersion, 1)
-  const exported = await gateway.invoke({ namespace: 'dshUsage', method: 'export', args: { filter: { timezone: 'UTC' }, format: 'json' } })
+  const exported = await invoke({ namespace: 'dshUsage', method: 'export', args: { filter: { timezone: 'UTC' }, format: 'json' } })
   assert.equal(JSON.parse(exported.text).totals.calls, 0)
-  await assert.rejects(() => gateway.invoke({ namespace: 'dshUsage', method: 'query', args: { filter: { timezone: 'UTC', from: 10, to: 1 } } }))
+  await assert.rejects(() => invoke({ namespace: 'dshUsage', method: 'query', args: { filter: { timezone: 'UTC', from: 10, to: 1 } } }))
   const request = markAgentLoopRequest({ provider: 'p', model: 'm', messages: [] })
   const next = async function* () { yield { type: 'usage', usage: { inputTokens: 1, outputTokens: 1 } } }
   for await (const _ of ctx.waterfall('llm/stream', request, next)) {}
   assert.equal((await ctx.dshUsage.query({ timezone: 'UTC' })).totals.calls, 0)
+  await peer.dispose()
+  await assert.rejects(() => invoke({ namespace: 'dshUsage', method: 'query', args: { filter: { timezone: 'UTC' } } }), { code: 'gateway/peer-disposed' })
   await fiber.dispose()
   assert.equal(ctx.get('dshUsage'), undefined)
   assert.equal(ctx.typert.local.get('dshUsage/query'), undefined)
