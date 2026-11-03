@@ -25,7 +25,25 @@ dsh plugin --profile desktop add "git+https://github.com/Haiyang-Bian/dsh-plugin
 
 按需安装其中一个即可，然后重新打开 DSH 并确认插件已启用。桌面版使用 `desktop` profile；其他运行方式改成实际 profile 名称。没有 `dsh` 命令时，使用图形界面的 Git 安装入口，或先通过桌面应用提供的命令管理功能注册命令（取决于桌面版本）。
 
-Git 安装获取源码，两个插件的 `prepare` 会在安装时构建产物；不需要手动克隆，也不向 Git 提交 `dist`。pnpm 10 默认限制 Git 依赖的构建脚本。上面的 `--allow-build` 只授权所选插件；图形界面如提示构建脚本被拦截，按提示允许所选插件构建并重试；如无法在界面授权，可完全退出 DSH 后执行相应命令，或在该 profile 的 `pnpm-workspace.yaml` 现有 `onlyBuiltDependencies` 列表中加入需要的插件名再重试，保留其他设置。
+Git 安装获取源码，两个插件的 `prepare` 会在安装时构建产物；不需要手动克隆，也不向 Git 提交 `dist`。上面的 `--allow-build=<包名>` 命令已在 pnpm 10.32.1 验证。图形界面如提示构建脚本被拦截，按提示允许所选插件构建并重试；如果界面无法授权，按安装器实际使用的 pnpm 版本配置 profile，保留其他设置。
+
+- **pnpm 10**：可将所选插件名加入该 profile 的 `pnpm-workspace.yaml` 现有 `onlyBuiltDependencies` 列表。
+- **pnpm 11**：使用 `allowBuilds` 映射；`onlyBuiltDependencies` 已被移除。Git/远程 tarball 依赖按来源授权，单写 `dsh-appearance: true` 不足以授权 Git 包。复制报错给出的完整键，将对应值设为 `true`。
+
+例如，安装外观插件源码提交 `e6951a4341294abd8c656278f3767c11d48c8a16` 时，在报错指向的 profile 文件中合并：
+
+```yaml
+allowBuilds:
+  "dsh-appearance@https://codeload.github.com/Haiyang-Bian/dsh-plugins/tar.gz/e6951a4341294abd8c656278f3767c11d48c8a16#path:/plugins/dsh-appearance": true
+```
+
+如果已有 `allowBuilds`，只增加其中的条目，不重复顶层键或覆盖文件。修改真实 desktop profile 前先完全退出 DSH；此配置授权的是该来源、提交与子目录的构建脚本。使用同一提交重试安装：
+
+```text
+git+https://github.com/Haiyang-Bian/dsh-plugins.git#e6951a4341294abd8c656278f3767c11d48c8a16&path:/plugins/dsh-appearance
+```
+
+安装 `main` 或其他提交时，以那次报错生成的完整授权键为准；统计插件同理，使用其自身名称和子目录。pnpm 的升级通知与构建授权错误无关，无需为了处理此错误运行 `pnpm self-update`。规则见 [pnpm 构建授权文档](https://pnpm.io/settings/build#allowbuilds)。
 
 根包 `dsh-plugins` 的 `private: true` 只防止误发布到 npm，不影响 GitHub 仓库公开；根包不是可启用的插件包，完整地址必须保留子目录。需要固定源码版本时，将 `main` 替换为已核实的提交 SHA，保留 `&path:/plugins/...`。
 
