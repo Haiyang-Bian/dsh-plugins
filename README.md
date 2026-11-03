@@ -25,11 +25,17 @@ dsh plugin --profile desktop add "git+https://github.com/Haiyang-Bian/dsh-plugin
 
 按需安装其中一个即可，然后重新打开 DSH 并确认插件已启用。桌面版使用 `desktop` profile；其他运行方式改成实际 profile 名称。没有 `dsh` 命令时，使用图形界面的 Git 安装入口，或先通过桌面应用提供的命令管理功能注册命令（取决于桌面版本）。
 
-Git 安装获取源码，两个插件的 `prepare` 会在安装时构建产物；不需要手动克隆，也不向 Git 提交 `dist`。pnpm 10 默认限制 Git 依赖的构建脚本。上面的 `--allow-build` 只授权所选插件；图形界面如报告 `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED`，可完全退出 DSH 后执行相应命令，或在该 profile 的 `pnpm-workspace.yaml` 现有 `onlyBuiltDependencies` 列表中加入需要的插件名再重试，保留其他设置。
+Git 安装获取源码，两个插件的 `prepare` 会在安装时构建产物；不需要手动克隆，也不向 Git 提交 `dist`。pnpm 10 默认限制 Git 依赖的构建脚本。上面的 `--allow-build` 只授权所选插件；图形界面如提示构建脚本被拦截，按提示允许所选插件构建并重试；如无法在界面授权，可完全退出 DSH 后执行相应命令，或在该 profile 的 `pnpm-workspace.yaml` 现有 `onlyBuiltDependencies` 列表中加入需要的插件名再重试，保留其他设置。
 
-根目录 `dsh-plugins` 是私有开发入口，不是可启用的插件包；完整地址必须保留子目录。需要固定源码版本时，将 `main` 替换为已核实的提交 SHA，保留 `&path:/plugins/...`。
+根包 `dsh-plugins` 的 `private: true` 只防止误发布到 npm，不影响 GitHub 仓库公开；根包不是可启用的插件包，完整地址必须保留子目录。需要固定源码版本时，将 `main` 替换为已核实的提交 SHA，保留 `&path:/plugins/...`。
 
 安装插件只安装代码，不同步外观偏好、统计历史、会话或凭据；这些数据仍属于各台电脑的本地 DSH profile。自定义字体还需要在目标机安装相应字体。
+
+### 安装验证
+
+2026-11-03 使用桌面版附带的 DSH CLI `0.2.1-rc.2` 和 pnpm `10.32.1`，在独立临时 `DSH_HOME`/profile 中从上述公开 GitHub 地址同时安装两款插件。已确认自动构建成功、Node/客户端入口及 bundle patch 存在，profile 的 `dsh.profile.bundles` 登记两款插件，`--dump-config` 展开结果包含它们。验证源码提交为 `76dbd63`。
+
+仓库的 82 项回归（外观 54、统计 28）、类型检查、冻结锁文件安装和根目录构建通过。此次安装验证未修改日常 desktop profile；尚未进行第二台电脑或图形安装界面的完整端到端验证。
 
 ## 开发
 
