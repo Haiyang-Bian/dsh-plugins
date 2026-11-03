@@ -21,7 +21,8 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && node scripts/build.mjs",
     "prepack": "pnpm run build",
-    "test:browser": "node tests/browser-smoke.cjs"
+    "test:browser": "node tests/browser-smoke.cjs",
+    "prepare": "pnpm run build"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "4.0.5",
@@ -69,5 +70,14 @@
     "statistics",
     "tokens"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Haiyang-Bian/dsh-plugins.git",
+    "directory": "plugins/dsh-usage"
+  },
+  "homepage": "https://github.com/Haiyang-Bian/dsh-plugins/tree/main/plugins/dsh-usage",
+  "bugs": {
+    "url": "https://github.com/Haiyang-Bian/dsh-plugins/issues"
+  }
 }

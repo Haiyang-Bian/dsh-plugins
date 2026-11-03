@@ -7,6 +7,30 @@
 - [DSH 外观增强](plugins/dsh-appearance/README.md)：`dsh-appearance`，版本 `0.10.0`。
 - [DSH 使用统计](plugins/dsh-usage/README.md)：`dsh-usage`，版本 `0.1.1`（DSH `0.2.1-rc.2`），原生侧栏入口与图表仪表盘。
 
+## 从 GitHub 安装
+
+公开源码仓库：[Haiyang-Bian/dsh-plugins](https://github.com/Haiyang-Bian/dsh-plugins)。同一仓库内的插件可以分别通过 DSH 的 Git 安装功能安装，地址中的 `&path:` 选择插件子目录：
+
+| 插件 | Git 安装地址 | 已验证兼容基线 |
+|---|---|---|
+| DSH 外观增强 0.10.0 | `git+https://github.com/Haiyang-Bian/dsh-plugins.git#main&path:/plugins/dsh-appearance` | DSH 0.2.0-rc.2 |
+| DSH 使用统计 0.1.1 | `git+https://github.com/Haiyang-Bian/dsh-plugins.git#main&path:/plugins/dsh-usage` | DSH 0.2.1-rc.2 |
+
+在 DSH 的 Git 仓库安装入口填写所需插件的完整地址。也可在已注册 `dsh` 命令的终端执行（先完全退出桌面 DSH）：
+
+```powershell
+dsh plugin --profile desktop add "git+https://github.com/Haiyang-Bian/dsh-plugins.git#main&path:/plugins/dsh-appearance" --allow-build=dsh-appearance
+dsh plugin --profile desktop add "git+https://github.com/Haiyang-Bian/dsh-plugins.git#main&path:/plugins/dsh-usage" --allow-build=dsh-usage
+```
+
+按需安装其中一个即可，然后重新打开 DSH 并确认插件已启用。桌面版使用 `desktop` profile；其他运行方式改成实际 profile 名称。没有 `dsh` 命令时，使用图形界面的 Git 安装入口，或先通过桌面应用提供的命令管理功能注册命令（取决于桌面版本）。
+
+Git 安装获取源码，两个插件的 `prepare` 会在安装时构建产物；不需要手动克隆，也不向 Git 提交 `dist`。pnpm 10 默认限制 Git 依赖的构建脚本。上面的 `--allow-build` 只授权所选插件；图形界面如报告 `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED`，可完全退出 DSH 后执行相应命令，或在该 profile 的 `pnpm-workspace.yaml` 现有 `onlyBuiltDependencies` 列表中加入需要的插件名再重试，保留其他设置。
+
+根目录 `dsh-plugins` 是私有开发入口，不是可启用的插件包；完整地址必须保留子目录。需要固定源码版本时，将 `main` 替换为已核实的提交 SHA，保留 `&path:/plugins/...`。
+
+安装插件只安装代码，不同步外观偏好、统计历史、会话或凭据；这些数据仍属于各台电脑的本地 DSH profile。自定义字体还需要在目标机安装相应字体。
+
 ## 开发
 
 使用 pnpm 10.32.1，在本目录执行：

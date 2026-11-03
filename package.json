@@ -7,5 +7,13 @@
     "typecheck": "pnpm -r run typecheck",
     "build": "pnpm -r run build",
     "test:browser": "pnpm -r --parallel run test:browser"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Haiyang-Bian/dsh-plugins.git"
+  },
+  "homepage": "https://github.com/Haiyang-Bian/dsh-plugins#readme",
+  "bugs": {
+    "url": "https://github.com/Haiyang-Bian/dsh-plugins/issues"
   }
 }

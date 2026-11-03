@@ -8,6 +8,16 @@
 
 ![合成数据下的浏览器集成验证](artifacts/browser-integration.jpg)
 
+## 从 GitHub 安装
+
+此插件位于多插件仓库的 `plugins/dsh-usage` 子目录。DSH 的 Git 仓库安装地址为：
+
+```text
+git+https://github.com/Haiyang-Bian/dsh-plugins.git#main&path:/plugins/dsh-usage
+```
+
+Git 安装会通过 `prepare` 构建客户端及所需宿主产物。构建授权、桌面 profile 和命令行安装说明见[仓库安装指南](https://github.com/Haiyang-Bian/dsh-plugins#从-github-安装)。
+
 ## 图表与筛选
 
 每日 token 趋势、模型用量排行、输入/输出/缓存构成、对话与调用趋势、最近十二周活动热力图、各模型记录耗时和失败率。日期默认近 30 天，支持今天、7 天、全部及自定义；同时支持工作区、提供方/模型和请求类型筛选。日期按浏览器本地时区计算。每张图都有可展开的数据表，支持键盘访问。

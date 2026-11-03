@@ -22,7 +22,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.cjs",
     "test:browser": "node tests/browser-smoke.cjs",
-    "prepack": "tsc --noEmit && vite build"
+    "prepack": "tsc --noEmit && vite build",
+    "prepare": "pnpm run build"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-client-store": "0.2.0-rc.2",
@@ -54,5 +55,14 @@
     "theme",
     "appearance"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Haiyang-Bian/dsh-plugins.git",
+    "directory": "plugins/dsh-appearance"
+  },
+  "homepage": "https://github.com/Haiyang-Bian/dsh-plugins/tree/main/plugins/dsh-appearance",
+  "bugs": {
+    "url": "https://github.com/Haiyang-Bian/dsh-plugins/issues"
+  }
 }

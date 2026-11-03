@@ -2,6 +2,16 @@
 
 为 DeepSeek Harness 提供 Sunset（深紫与琥珀）、Aurora（蓝青与淡紫渐变）、Sage（鼠尾草绿与暖米色纸纹）三个浮岛式主题，并将外观和字体控制集成到 **设置 → 通用**。
 
+## 从 GitHub 安装
+
+此插件位于多插件仓库的 `plugins/dsh-appearance` 子目录。DSH 的 Git 仓库安装地址为：
+
+```text
+git+https://github.com/Haiyang-Bian/dsh-plugins.git#main&path:/plugins/dsh-appearance
+```
+
+Git 安装会通过 `prepare` 构建客户端及所需宿主产物。构建授权、桌面 profile 和命令行安装说明见[仓库安装指南](https://github.com/Haiyang-Bian/dsh-plugins#从-github-安装)。
+
 ## 使用
 
 启用插件后打开 DSH 官方设置的“通用”页：
